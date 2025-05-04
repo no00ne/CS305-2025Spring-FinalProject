@@ -2,15 +2,15 @@
 
 ## 1. Introduction
 
-A blockchain network is formed by a set of blockchain peers (*simply* peers) who are responsible for verifying users’ transactions in the network and packaging valid transactions in the form of blocks. Then, each block is verified by all peers and linked to the blockchain (i.e., the chain of valid blocks) if the majority of peers accept it. In this process, each peer decides about the validity of transactions and blocks independently without any centralised entity. Moreover, each peer stores a copy of the blockchain locally in its host. The simple operation procedure of a blockchain system is as follows:
+A blockchain network is formed by a set of blockchain peers (*simply* peers) who are responsible for verifying users’ transactions and packaging valid transactions in the form of blocks. Then, each block is verified by all peers and linked to the blockchain (i.e., the chain of valid blocks) if the majority of peers accept it. In this process, each peer decides about the validity of transactions and blocks independently without any centralised entity. Moreover, each peer stores a copy of the blockchain locally in its host. The simple operation procedure of a blockchain network is as follows:
 
-1. Users generate new transactions and submit them to peers in the blockchain system.
+1. Users generate new transactions and submit them to peers in the blockchain network.
    
 2. Peers receiving the transactions verify the transactions’ validity. If the transactions are valid, peers add them to their local transaction pool and broadcast them to other peers for verification.
    
 3. In each block period, one of the peers is selected as a block generator to package transactions in its pool in the form of a block, which is broadcast to all peers in the network for verification.
    
-4. If the majority of peers think that the block is valid and accept it, each peer appends the block to the blockchain. Note that each peer stores a copy of the blockchain locally.
+4. If the majority of peers think that the block is valid and accept it, each peer appends the block to the blockchain.
 
 <div align="center">
 
@@ -24,9 +24,9 @@ As shown in Figure 1, a blockchain system can be roughly divided into four layer
 
 * Data Layer: Define the data structure of transactions, blocks, the blockchain (i.e., the chain of blocks), and the techniques (e.g., cryptography) to ensure data security.
   
-* Network Layer: Define the network of blockchain peers (simply peers) and how they communicate to discover each other, exchange data, and verify the validity of transmitted data.
+* Network Layer: Define the network of peers and how they communicate to discover each other, exchange data, and verify the validity of transmitted data.
   
-* Consensus Layer: Define the consensus mechanism for selecting block generators and verifying blocks among peers to reach a consensus about newly generated blocks.
+* Consensus Layer: Define the consensus mechanism for selecting block generators and verifying blocks among peers to reach a consensus about the validity of newly generated blocks.
   
 * Application Layer: Provide users with dApps, such as cryptocurrency exchange, data sharing, etc.
 
@@ -38,15 +38,15 @@ This section will introduce the functionalities in a blockchain system’s netwo
 
 ### Part 0: Peer Initialization
 
-* Configure its IP address, port, and gossip fanout (i.e., how many target peers a peer send message to).
+* Configure its `IP address`, `port`, and `gossip fanout` (i.e., how many target peers a peer send messages to while broadcasting the messages).
   
-* Decide whether to act as a normal/malicious, lightweight/full, NATed or non-NATed peer.
+* Decide whether to act as a `normal` or `malicious`, `lightweight` or `full`, `NATed` or `non-NATed` peer.
   
-* Create a TCP socket to receive incoming messages.
+* Create a `TCP socket` to receive incoming messages.
 
 **Tips**
 
-* In blockchains, peers usually adopt the gossip protocol to broadcast blocks and transactions. Specifically, each peer sends blocks or transactions to a random subset instead of all of its known peers to reduce redundant messages in the network.
+* In blockchains, peers usually adopt the gossip protocol while broadcasting blocks and transactions. That is, each peer sends blocks or transactions to a random subset instead of all of its known peers. This can reduce redundant messages in the network.
   
 * A normal peer always generates correct transactions and blocks. Instead, a malicious peer can generate incorrect transactions and blocks (e.g., with the wrong block ID).
   
@@ -70,7 +70,7 @@ The peer discovers peers existing in the network and periodically checks if they
 
 ### Part 2: Block and Transaction Generation and Verification
 
-Since block generator selection and block verification are implemented in the consensus layer, we simplify these two functions in this project. In detail, each full peer can generate transactions with random senders and receivers, and packages received and generated transactions into a new block periodically. A new transaction or block is valid if its ID is correct. Moreover, a new peer must obtain the latest blockchain from known peers before generating transactions and blocks. The procedure of the transaction and block generation, and verification is as follows:
+Since block generator selection and block verification are implemented in the consensus layer, we simplify these two functions in this project. In detail, in each block period, each full peer can act as block generators simultaneously to package transactions in its local pool into a new block. Then, each peer broadcast its new block to other peers for verification. Regarding transaction and block verification, a new transaction or block is valid if its ID is correct. Moreover, a new peer must obtain the latest blockchain from known peers before generating transactions and blocks. The procedure of the transaction and block generation, and verification is as follows:
 
 * Synchronize the latest blockchain from known peers while joining the network.
   
