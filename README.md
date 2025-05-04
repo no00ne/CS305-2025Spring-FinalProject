@@ -58,15 +58,15 @@ This section will introduce the functionalities in a blockchain system’s netwo
 
 The peer discovers peers existing in the network and periodically checks if they are alive. The peer must know some peers running in the network before joining it. The procedure of peer discovery is as follows:
 
-* Say “hello” to its known peers while joining the network.
+* Say `hello` to its known peers while joining the network.
   
-* Add a new peer to the list of known peers when receiving its “hello” message.
+* Add a new peer to the list of known peers when receiving its `hello` message.
   
-* Send a “ping” message to all known peers periodically.
+* Send a `ping` message to all known peers periodically.
   
-* Update the state of known peers while receiving “pong” messages.
+* Update the state of known peers while receiving `pong` messages.
   
-* Remove unresponsive peers if no “pong” messages are received before the timeout.
+* Remove unresponsive peers if no `pong` messages are received before the timeout.
 
 ### Part 2: Block and Transaction Generation and Verification
 
@@ -87,9 +87,9 @@ Since block generator selection and block verification are implemented in the co
 * Add the valid block to the local blockchain.
 
 **Tips**
-* When a peer sends a block to another, the sender usually sends an “INV” message with the block’s metadata instead of the block itself. If the receiver finds that it has not yet received the block, the receiver will reply with a “GETDATA” message to request the block. This can reduce the network overhead.
+* When a peer sends a block to another, the sender usually sends an `INV` message with the block’s metadata instead of the block itself. If the receiver finds that it has not yet received the block, the receiver will reply with a `GETDATA` message to request the block. This can reduce the network overhead.
   
-* When receiving a “GETDATA” message, a peer replies with the block if the sender is a full peer; otherwise, a peer replies with the block's header because lightweight peers only store the header of blocks.
+* When receiving a `GETDATA` message, a peer replies with the block if the sender is a full peer; otherwise, a peer replies with the block's header because lightweight peers only store the header of blocks.
 
 ### Part 3: Sending Messages
 
@@ -113,14 +113,14 @@ The peer dispatches and processes received messages based on the message types.
   
 * Check the types of messages and process the messages according to their type:
   
-  * Msg.type=TX,
+  * msg.type=`TX`,
     * Check the validity of the transactions.
     * Check whether the transactions have been received.
     * Record the count of redundant transactions if they have been received.
     * Add the new transactions to the local pool if they have not been received.
     * Broadcast the new transactions to known peers.
       
-  * Msg.type=BLOCK,
+  * msg.type=`BLOCK`,
     * Check the validity of the blocks.
     * Check whether the blocks have been received.
     * Record the count of redundant blocks if they have been received.
@@ -129,20 +129,20 @@ The peer dispatches and processes received messages based on the message types.
     * Check whether the new blocks are the parents of orphaned blocks.
     * Broadcast the new blocks to known peers.
       
-  * Msg.type=INV,
+  * msg.type=`INV`,
     * Check whether the blocks in the INV message have been received.
     * Request missing blocks from the message sender.
       
-  * Msg.type=GETDATA,
+  * msg.type=`GETDATA`,
     * Check whether the blocks requested are in the local blockchain.
     * Check whether the message requester is a full or lightweight peer.
     * Reply to the full message sender with the requested blocks or the lightweight message sender with the header of the requested blocks if the blocks are stored locally.
     * Request the blocks from known peers if the blocks are not stored locally.
       
-  * Msg.type=GET_BLOCK_HEADERS
+  * msg.type=`GET_BLOCK_HEADERS`
     * Reply with the header of blocks in the local blockchain.
       
-  * Msg.type=BLOCK_HEADERS
+  * msg.type=`BLOCK_HEADERS`
     * Check the validity of the list of block headers by checking whether the parent of each block exists in the blockchain.
     * Request the missing block from known peers if the peer is a full peer.
 
@@ -151,23 +151,23 @@ The peer dispatches and processes received messages based on the message types.
 
 Start a dashboard server to display the following message:
 
-* Localhost: port/peers: display the set of known peers.
+* `Localhost: port/peers`: display the set of known peers.
   
-* Localhost: port/status: display the status of peers in the network.
+* `Localhost: port/status`: display the status of peers in the network.
   
-* Localhost: port/transactions: display the transactions in the local pool.
+* `Localhost: port/transactions`: display the transactions in the local pool.
   
-* Localhost: port/blocks: display the blocks in the local blockchain.
+* `Localhost: port/blocks`: display the blocks in the local blockchain.
   
-* Localhost: port/orphan: display the orphaned blocks.
+* `Localhost: port/orphan`: display the orphaned blocks.
   
-* Localhost: port/latency: display the transmission latency between peers.
+* `Localhost: port/latency`: display the transmission latency between peers.
   
-* Localhost: port/capacity: display the sending capacity of the peers.
+* `Localhost: port/capacity`: display the sending capacity of the peers.
   
-* Localhost: port/redundancy: display the number of redundant blocks and transactions received.
+* `Localhost: port/redundancy`: display the number of redundant blocks and transactions received.
   
-* Localhost: port/scores: display peers' scores in the network.
+* `Localhost: port/scores`: display peers' scores in the network.
 
 
 ## 3. Functions to Complete
