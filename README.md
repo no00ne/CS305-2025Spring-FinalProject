@@ -195,35 +195,114 @@ Start a dashboard server to display the following message:
 
 The operation logic of the project is given in the `Main` function of `node.py`. In the following, the functions to be completed in each part are explained as follows.
 
-### Part 0: Peer Initialization
+### Part 1: Peer Initialization (`socket_server.py`)
 
-1. `start_socket_server` (`socket_server.py`)
-   
+1. `start_socket_server` 
+
 * Create a TCP socket and bind it to the peer’s IP address and port.
   
 * Start listening on the socket for receiving incoming messages.
 
-2. `listen_on_port` (`node.py`)
-   
-* Pass the received data to the function `dispatch_message` for message processing.
+* When receiving messages, pass the messages to the function `dispatch_message` in `message_handler.py`.
 
-### Part 1: Peer Discovery
+### Part 2: Peer Discovery 
 
-1. `start_peer_discovery` (`peer_discovery.py`)
+#### `peer_discovery.py`: This part is responsible for saying 'hello' to known peers when the peer joins the system.
+
+1. `start_peer_discovery` 
    
-* Define the JSON format of a `hello` message, which should include: `{message type, sender’s alias, IP address, port, flags, and message ID}`. A `sender’s alias` can be `peer_port`. The `flags` should indicate whether the peer is `NATed or non-NATed`, and `full or lightweight`. The `message ID` can be a random number.
+* Define the JSON format of a `hello` message, which should include: `{message type, sender’s ID, IP address, port, flags, and message ID}`. A `sender’s ID` can be `peer_port`. The `flags` should indicate whether the peer is `NATed or non-NATed`, and `full or lightweight`. The `message ID` can be a random number.
 
 * Send a `hello` message to all known peers and put the messages into the outbox queue.
   
-2. `handle_hello_message` (`peer_discovery.py`)
-   
-* Process received `hello` message.
-     
-* If the sender is unknown, add it to the list of known peers and record their flags.
-     
-* Update the set of reachable peers. Each peer can only receive `hello` messages from reachable peers and never forward `hello` messages. If a peer receives `hello` messages from a NATed peer, it can act as the relaying peers of the NATed peer.
+2. `handle_hello_message`
 
-### Part 2: Block and Transaction Generation and Verification
+* Read information in the received `hello` message.
+     
+* If the sender is unknown, add it to the list of known peers (`known_peer`) and record their flags (`peer_flags`).
+     
+* Update the set of reachable peers (`reachable_by`).
+
+**Tips:** Each peer can only receive `hello` messages from reachable peers and never forward `hello` messages. If a peer receives `hello` messages from a NATed peer, it can act as the relaying peers of the NATed peer.
+
+#### `peer_manager.py`: This part is responsible for checking the status and recording the performance of known peers.
+
+1. `start_ping_loop`
+
+* Define the JSON format of a `ping` message, which should include `{message typy, sender's ID, timestamp}`.
+
+* Send a `ping` message to each known peer periodically.
+
+2. `create_pong`
+
+* Create the JSON format of a `pong` message, which should include `{message type, sender's ID, timestamp in the received ping message}`
+
+3. `handle_pong`
+
+* Read the information in the received `pong` message.
+
+* Update the transmission latenty between the peer and the sender (`rtt_tracker`).
+
+4. `start_peer_monitor`
+
+* Check the latest time to receive `ping` or `pong` message from each peer in `last_ping_time`.
+
+* If the latest time is earlier than the limit, mark the peer's status in `peer_status` as `UNREACHABLE` or otherwise `ALIVE`.
+
+5. `update_peer_heartbeat`
+
+* Update the `last_ping_time` of a peer when receiving its `ping` or `pong` message.
+
+--------------------------------------------------
+
+6. `record_offense`
+
+* Record the offence times of a peer when malicious behaviors are detected.
+
+* Add a peer to `blacklist` if its offence times exceed 3.
+
+
+### Part 3: Block and Transaction Generation and Verification
+
+#### `transaction.py`: This part processes all transaction-related functions.
+
+1. `transaction_generation`
+
+* Randomly choose a peer from `known_peers` and generate a transaction to transfer arbitrary amount of money to the peer.
+
+* Add the transaction to local `tx_pool` using the function `add_transaction`.
+
+* Broadcast the transaction to `known_peers` using the function `gossip_message` in `outbox.py`.
+
+2. `add_transaction`
+
+* Add a transaction to the local `tx_pool` if it is in the pool.
+
+* Add the transaction ID to `tx_ids`.
+
+3. `get_recent_transaction`
+
+* Return all transactions in the local `tx_pool`.
+
+5. `clear_pool`
+
+* Remove all transactions in `tx_pool` and transaction IDs in `tx_ids`.
+
+#### `block_handler.py`: This part processes all block-related functions.
+
+6. `request_block_sync`
+
+* Define the JSON format of a `GET_BLOCK_HEADERS`, which should include `{message type, sender's ID}`.
+
+* Send a `GET_BLOCK_HEADERS` message to each known peer and put the messages in the outbox queue.
+
+7. `block_generation`
+
+* Create a new block periodically using the function `create_dummy_block`.
+
+* Create an `INV` message for the new block using the function `create_inv`.
+
+* Broadcast the `INV` message to known peers using the function `gossip` in `outbox.py`.
 
 1. `request_block_sync` (`node.py`)
    
