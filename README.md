@@ -42,7 +42,7 @@ In this project, we will focus on how peers in a blockchain system communicate t
 
 <div align="center">
 
-<img src="Functionalities_Relationship.jpg" alt="Description" width="700"/>
+<img src="Functionality_Relationship.jpg" alt="Description" width="700"/>
 
 <p><em>Figure 2: Relationship between different functionalities.</em></p>
 
