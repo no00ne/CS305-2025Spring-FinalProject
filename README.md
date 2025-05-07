@@ -20,7 +20,7 @@ The simple operation procedure of a blockchain system is as follows:
 
 <div align="center">
 
-<img src="Blockchain_Architecture.jpg" alt="Description" width="500"/>
+<img src="Blockchain_Architecture.jpg" alt="Description" width="400"/>
 
 <p><em>Figure 1: A general blockchain architecture [1].</em></p>
 
@@ -28,11 +28,11 @@ The simple operation procedure of a blockchain system is as follows:
 
 As shown in Figure 1, a blockchain system is implemented based on the **peer-to-peer (P2P) network**, in which each peer is a blockchain node. Moreover, the *data layer* defines the data structure of transactions, blocks, the blockchain and the technique (e.g., cryptography) to ensure data security. Then, the *network layer* specifies how peers can communicate to discover each other, exchange data (e.g., transactions and blocks) and verify the validity of transmitted data. Furthermore, the *consensus layer* indicates the consensus mechanism adopted by the system for selecting block generators, verifying blocks and consequently reaching a consensus about the validity of blocks among peers. Finally, developers can develop different decentralized applications (dApps) on the *application layer*.
 
-This project focuses on simulating the network layer of a blockchain system, which includes the functionality of **peer discovery**, **sending message processing** and **receiving message processing**. Moreover, for exchanging transactions and blocks in the network layer, a simplified **transaction and block generation** will be simulated. Finally, **peer initialization** is necessary before running a peer, and a **dashboard** is used to observe the operation of the system. The functionalities to be realized are summarized in Figure 2.
+This project aims at simulating the network layer of a blockchain system, which includes the functionality of **peer discovery**, **sending message processing** and **receiving message processing**. Moreover, for exchanging transactions and blocks in the network layer, a simplified **transaction and block generation** will be simulated. Finally, **peer initialization** is necessary before running a peer, and a **dashboard** is used to observe the operation of the system. The functionalities to be realized are summarized in Figure 2.
 
 <div align="center">
 
-<img src="Functionalities.jpg" alt="Description" width="500"/>
+<img src="Functionalities.jpg" alt="Description" width="700"/>
 
 <p><em>Figure 2: Functionalities to complete in this project.</em></p>
 
