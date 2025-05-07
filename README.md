@@ -40,6 +40,14 @@ In this project, we will focus on how peers in a blockchain system communicate t
 
 ## 2. Functionality of the Blockchain P2P Network
 
+<div align="center">
+
+<img src="Functionalities_Relationship.jpg" alt="Description" width="700"/>
+
+<p><em>Figure 2: Relationship between different functionalities.</em></p>
+
+</div>
+
 This section will introduce the functionalities in a blockchain system’s network layer, as shown in Figure 2. The functionalities of a peer can be roughly split into six parts as follows:
 
 ### Part 0: Peer Initialization
