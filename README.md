@@ -32,9 +32,9 @@ This project focuses on simulating the network layer of a blockchain system, whi
 
 <div align="center">
 
-<img src="Functionalities.pdf" alt="Description" width="500"/>
+<img src="Functionalities.jpg" alt="Description" width="500"/>
 
-<p><em>Figure 1: Functionalities to complete in this project.</em></p>
+<p><em>Figure 2: Functionalities to complete in this project.</em></p>
 
 </div>
 
