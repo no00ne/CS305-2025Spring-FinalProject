@@ -44,120 +44,127 @@ In this project, we will focus on how peers in a blockchain system communicate t
 
 <img src="Functionality_Relationship.jpg" alt="Description" width="700"/>
 
-<p><em>Figure 2: Relationship between different functionalities.</em></p>
+<p><em>Figure 3: Relationship between different functionalities.</em></p>
 
 </div>
 
-This section will introduce the functionalities in a blockchain system’s network layer, as shown in Figure 2. The functionalities of a peer can be roughly split into six parts as follows:
+Figure 3 shows the relationship between different functionalities. In the following, we introduce each functionalities in detail.
 
-### Part 0: Peer Initialization
+### Part 1: Peer Initialization
 
-* Configure its `IP address`, `port`, and `gossip fanout` (i.e., how many target peers a peer send messages to while broadcasting the messages).
+When a new peer join the blockchain network, it must
+
+* configure its `IP address`, `port`, and `gossip fanout`, and
   
-* Decide whether to act as a `normal` or `malicious`, `lightweight` or `full`, `NATed` or `non-NATed` peer.
-  
-* Create a `TCP socket` to receive incoming messages.
+* decide whether to act as a `normal` or `malicious`, `lightweight` or `full`, `NATed` or `non-NATed` peer.
 
-**Tips**
-
-* In blockchains, peers usually adopt the gossip protocol while broadcasting blocks and transactions. That is, each peer sends blocks or transactions to a random subset instead of all of its known peers. This can reduce redundant messages in the network.
+After that, the peer can 
   
-* A normal peer always generates correct transactions and blocks. Instead, a malicious peer can generate incorrect transactions and blocks (e.g., with the wrong block ID).
-  
-* A full peer always engages in block generation and verification and store all blocks locally. Instead, a lightweight peer never generates and verifies block and only stores the header of blocks locally.
-  
-* This project considers network address translation (NAT). A NATed peer is generally located in a local network and cannot interact directly with peers outside the local network. Instead, non-NATed peers in the local network act as NAT routers or relaying peers between NATed peers and peers outside the local network. Typically, while forwarding external messages to a peer in a local network, a relaying peer must find the destination peer’s IP address in the local network based on the NAT translation table. Here, to reduce the complexity, we only simulate the logic of NAT and ignore the NAT translation table; that is, a NATed peer has only one IP address across the network.
+* create a `TCP socket` to receive incoming messages.
 
-### Part 1: Peer Discovery
+**Tips:**
 
-The peer discovers peers existing in the network and periodically checks if they are alive. The peer must know some peers running in the network before joining it. The procedure of peer discovery is as follows:
+* `gossip fanout`: In blockchains, peers usually adopt the gossip protocol while broadcasting blocks and transactions. That is, each peer sends blocks or transactions to a random subset instead of all of its known peers. This can reduce redundant messages in the network. `gossip fanout` indicates the number of target peers while broadcasting blocks and transactions.
+  
+* `normal` or `malicious` peer: A normal peer always generates correct transactions and blocks. Instead, a malicious peer can generate incorrect transactions and blocks (e.g., with the wrong block ID).
+  
+* `lightweight` or `full` peer: In the introduction, we introduce that all peers verify the block and store a copy of the blockchain, which is called full peers. However, in practice, there are some resource-limited devices (e.g., mobile phones and laptops), which do not have enough computing and storage capacities to verify and store all blocks. To solve this issue, Ethereum allows peers to act as lighweight peers, which do not verify blocks adn store all blocks. Instead, lightweight peers store the header of blocks without transactions.
+  
+* `NATed` or `non-NATed` peer: This project considers network address translation (NAT). A NATed peer is generally located in a local network and cannot interact directly with peers outside the local network. Instead, non-NATed peers in the local network act as NAT routers or relaying peers between NATed peers and peers outside the local network. Typically, while forwarding external messages to a peer in a local network, a relaying peer must find the destination peer’s IP address in the local network based on the NAT translation table. Here, to reduce the complexity, we only simulate the logic of NAT and ignore the NAT translation table; that is, a NATed peer has only one IP address across the network.
+
+### Part 2: Peer Discovery
+
+After creating the TCP socket, the peer informs known peers of its existence in order to exchange data. To do so, the peer must acquire some peers' IP addresses and ports before joining the network. Moreover, the peer periodically check if the known peers are alive. The procedure of peer discovery is as follows:
 
 * Say `hello` to its known peers while joining the network.
   
-* Add a new peer to the list of known peers when receiving its `hello` message.
+* When receiving `hello` message, check if the sender is known. If not, add the sender to the list of known peers.
   
-* Send a `ping` message to all known peers periodically.
+* Periodically send `ping` messages to all known peers and wait for their replies, i.e., `pong` messages.
   
-* Update the state of known peers while receiving `pong` messages.
+* When receiving `pong` messages, update the state of known peers. Moreover, calculate the time difference between sending `ping` messages and receiving `pong` messages, which is the transmission latency between peers. 
   
 * Remove unresponsive peers if no `pong` messages are received before the timeout.
 
-### Part 2: Block and Transaction Generation and Verification
+### Part 3: Block and Transaction Generation and Verification
 
-Since block generator selection and block verification are implemented in the consensus layer, we simplify these two functions in this project. In detail, in each block period, each full peer can act as block generators simultaneously to package transactions in its local pool into a new block. Then, each peer broadcast its new block to other peers for verification. Regarding transaction and block verification, a new transaction or block is valid if its ID is correct. Moreover, a new peer must obtain the latest blockchain from known peers before generating transactions and blocks. The procedure of the transaction and block generation, and verification is as follows:
+After initializing the peer and find the known peers, the full peer starts generating and verifying transactions and blocks. In this project, each full peer periodically generate one transaction and broadcast it to other full peers for verification. A transaction is valid if the transaction ID is correct. These transactions are also stored in the peer's local transaction pool `tx_pool`. 
 
-* Synchronize the latest blockchain from known peers while joining the network.
+Since we only focus on transaction and block exchange in the blockchain P2P network, we simplify block generation here. Instead of selecting a block generator to generate a block, in each block period, each peer packages transactions in their `tx_pool` into a block independently and broadcasts it to other peers for verification. A block is valid if the `block ID` is correct. 
+
+The procedure of transaction and block generation and verification is as follows:
+
+* Synchronize the latest blockchain from known peers while joining the network in order to link new blocks to the latest blockchain.
   
-* Start generating transactions with random senders and receivers.
+* Start generating transactions.
   
 * Broadcast the transactions to known peers for verification.
   
-* Add the valid transactions to the local transaction pool.
+* Add the valid transactions to the local `tx_pool`.
   
-* Package the transactions in the local pool into a new block.
+* Package the transactions in the local `tx_pool` into a new block.
   
 * Broadcast the block to known peers for verification.
   
 * Add the valid block to the local blockchain.
 
-**Tips**
-* When a peer sends a block to another, the sender usually sends an `INV` message with the block’s metadata instead of the block itself. If the receiver finds that it has not yet received the block, the receiver will reply with a `GETDATA` message to request the block. This can reduce the network overhead.
+**Tips:**
+* When a peer sends a block to another, the sender usually sends an `INV` message with the block ID instead of the block itself. If the receiver finds that it has not yet received the block, the receiver will reply with a `GETBLOCK` message to request the block. This can reduce the network overhead.
   
-* When receiving a `GETDATA` message, a peer replies with the block if the sender is a full peer; otherwise, a peer replies with the block's header because lightweight peers only store the header of blocks.
+* When receiving a `GETBLOCK` message, a peer replies with the block if the sender is a full peer; otherwise, a peer replies with the block's header because lightweight peers only store the header of blocks.
 
-### Part 3: Sending Messages
+### Part 4: Sending Messages Processing
 
-To maintain the fairness of sending messages and control the peer’s sending capacities, all messages are put into an outbox queue before being sent out. Then, the peer sends the messages in the queue one by one.
+To simulate the process of sending messages (e.g., transactions and blocks), all sending messages must be put into an outbox queue and sent one by one. The procedure of sending messages is as follows:
 
-* Add messages to an outbox queue each time sending messages.
+* When sending a message, add the message to the outbox queue.
   
 * Read a message from the queue based on their priorities.
-  
-* Find the best relaying peer if the destination of a message is a NATed peer.
-  
-* Send the message to the relaying node or the destination directly.
 
-### Part 4: Receiving Messages
+* If the message destination is a non-NATed peer, send the message to the destination directly.
+  
+* If the message destination is a NATed peer, find the best relaying peer and send the message to the relaying peer.
 
-The peer dispatches and processes received messages based on the message types.
+### Part 4: Receiving Messages Processing
+
+When receiving messages from other peers, the messages must be dispatched and processed based on the message type. The receiving messages processing is as follows:
 
 * Check whether the message sender is banned. Drop the message if the sender is banned.
   
-* Check whether the number of messages sent by the sender is within the limit. Drop the message if the sender sends messages too frequently.
+* Check whether the number of messages sent by the sender is within the limit. Drop the message if the sender sends messages too frequently. This is to prevent denial-of-service (DoS) attacks.
   
-* Check the types of messages and process the messages according to their type:
+* Check the message type and process the messages accordingly:
   
   * msg.type=`TX`,
-    * Check the validity of the transactions.
-    * Check whether the transactions have been received.
+    * Check the validity of the transaction. If invalid, drop the transaction and record the sender's offence.
+    * Check whether the transaction has been received. If yes, drop the transaction to prevent replay attacks.
     * Record the count of redundant transactions if they have been received.
-    * Add the new transactions to the local pool if they have not been received.
-    * Broadcast the new transactions to known peers.
+    * Add the new transaction to the local `tx_pool` if it has not been received.
+    * Broadcast the new transaction to known peers.
       
   * msg.type=`BLOCK`,
-    * Check the validity of the blocks.
-    * Check whether the blocks have been received.
+    * Check the validity of the block. If invalid, drop the block and record the sender's offence.
+    * Check whether the block has been received. If yes, drop the block to prevent replay attacks.
     * Record the count of redundant blocks if they have been received.
-    * Add the new blocks to the list of orphaned blocks if they have not been received, but the parents of the new blocks do not exist.
-    * Add the new blocks to the local blockchain if they have not been received, and the parents of the new blocks exist.
-    * Check whether the new blocks are the parents of orphaned blocks.
-    * Broadcast the new blocks to known peers.
+    * Add the new block to the list of orphaned blocks if its previous block does not exist in the blockchain due to network delay.
+    * Add the new block to the local blockchain if its prevent block exists in the blockchain.
+    * Check whether the new block is the previous block of the orphaned blocks.
+    * Broadcast the new block to known peers.
       
   * msg.type=`INV`,
-    * Check whether the blocks in the INV message have been received.
+    * Check whether the block ID in the INV message have been received.
     * Request missing blocks from the message sender.
       
-  * msg.type=`GETDATA`,
-    * Check whether the blocks requested are in the local blockchain.
-    * Check whether the message requester is a full or lightweight peer.
-    * Reply to the full message sender with the requested blocks or the lightweight message sender with the header of the requested blocks if the blocks are stored locally.
-    * Request the blocks from known peers if the blocks are not stored locally.
+  * msg.type=`GETBLOCK`,
+    * Check whether the blocks requested are in the local blockchain. If not, request the blocks from known peers.
+    * If the sender is a full peer, reply with the requested blocks.
+    * If the sender is a lightweight peer, reply with the header of the requested blocks.
       
   * msg.type=`GET_BLOCK_HEADERS`
     * Reply with the header of blocks in the local blockchain.
       
   * msg.type=`BLOCK_HEADERS`
-    * Check the validity of the list of block headers by checking whether the parent of each block exists in the blockchain.
+    * Check the validity of the list of block headers by checking whether the previous block of each block exists in the blockchain.
     * Request the missing block from known peers if the peer is a full peer.
 
 
