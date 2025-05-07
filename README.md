@@ -30,6 +30,14 @@ As shown in Figure 1, a blockchain system is implemented based on the **peer-to-
 
 This project focuses on simulating the network layer of a blockchain system, which includes the functionality of **peer discovery**, **sending message processing** and **receiving message processing**. Moreover, for exchanging transactions and blocks in the network layer, a simplified **transaction and block generation** will be simulated. Finally, **peer initialization** is necessary before running a peer, and a **dashboard** is used to observe the operation of the system. The functionalities to be realized are summarized in Figure 2.
 
+<div align="center">
+
+<img src="Functionalities.pdf" alt="Description" width="500"/>
+
+<p><em>Figure 1: Functionalities to complete in this project.</em></p>
+
+</div>
+
 ## 2. Functionality of the Blockchain Network Layer
 
 This section will introduce the functionalities in a blockchain system’s network layer, as shown in Figure 2. The functionalities of a peer can be roughly split into six parts as follows:
