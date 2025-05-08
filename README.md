@@ -17,23 +17,31 @@ We take Ethereum as an example. Ethereum is a public blockchain, where any peer 
 
 <img src="Blockchain_Process.jpg" alt="Description" width="700"/>
 
-<p><em>Figure 1: Operation process of a blockchain system (nodes in the figure are blockchain peers).</em></p>
+<p><em>Figure 1: How a blockchain system operates (nodes = peers).</em></p>
 
 </div>
 
-As shown in Figure 1, the simple operation procedure of a blockchain system in a block period (i.e., the interval to generate a block) is as follows:
+In each block period (i.e., the interval for generating one block), the basic operation is:
 
 1. Peers generate new transactions and broadcast them to all peers in the system.
-   
-2. One of the peers is selected as a block generator to package transactions as a block.
-  
+2. One peer is selected as a block generator to package transactions as a block.
 3. The new block is broadcast to all peers in the system.
-
-4. Each peer verify the validity of the block.
-   
+4. Peers verify the validity of the block.
 5. If most peers accept the block, the block is appended to the blockchain. As such, transactions in the block are stored in the blockchain permanently. A malicious peer intending to modify a block in the blockchain will change all following blocks, which requires all peers to reverify these blocks; this is considered impossible in Bitcoin.
 
+This project focuses on simulating the peer-to-peer (P2P) communication in such a blockchain system. The core functions to simulate include:
+
+- Peer Initialization
+- Peer Discovery
+- Message Sending/Receiving
+- Transaction and Block Generation
+- Dashboard Monitoring
+
+The functionalities to be realized are summarized in Figure 2.
+
+<!---
 In this project, we will focus on how peers in a blockchain system communicate to exchange data (e.g., transactions and blocks). We can see from Figure 1 that a blockchain system is implemented based on the **peer-to-peer (P2P) network**, in which peers exchange data directly without any centralized entities. This project aims at simulating this blockchain P2P network, which includes the functionality of **peer discovery**, **sending message processing** and **receiving message processing**. Moreover, for exchanging transactions and blocks, a simplified **transaction and block generation** is simulated. Finally, **peer initialization** is necessary before running a peer, and a **dashboard** is used to observe the operation of the network. The functionalities to be realized are summarized in Figure 2.
+-->
 
 <div align="center">
 
@@ -51,74 +59,61 @@ In this project, we will focus on how peers in a blockchain system communicate t
 
 <img src="Functionality_Relationship.jpg" alt="Description" width="700"/>
 
-<p><em>Figure 3: Relationship between different functionalities.</em></p>
+<p><em>Figure 3: How different functionalities interact.</em></p>
 
 </div>
 
-Figure 3 shows the relationship between different functionalities. In the following, we introduce each functionalities in detail.
+Figure 3 shows the relationship between different functionalities. Each core component of the system is described below.
 
 -----
 
 ### Part 1: Peer Initialization
 
-When a new peer join the blockchain network, it must
+Upon joining the network, a peer:
+* configures its `IP address`, `port`, and `gossip fanout`, and
+* Chooses its role: `normal` or `malicious`, `lightweight` or `full`, `NATed` or `non-NATed`.
+* Initializes a TCP socket to receive incoming messages.
 
-* configure its `IP address`, `port`, and `gossip fanout`, and
-  
-* decide whether to act as a `normal` or `malicious`, `lightweight` or `full`, `NATed` or `non-NATed` peer.
-
-After that, the peer can 
-  
-* create a `TCP socket` to receive incoming messages.
-
-**Tips:**
-
-* `gossip fanout`: In blockchains, peers usually adopt the gossip protocol while broadcasting blocks and transactions. That is, each peer sends blocks or transactions to a random subset instead of all of its known peers. This can reduce redundant messages in the network. `gossip fanout` indicates the number of target peers while broadcasting blocks and transactions.
-  
+**Key Terms:**
+* `gossip fanout`: In blockchains, peers usually adopt the gossip protocol while broadcasting blocks and transactions. That is, each peer sends blocks or transactions to a random subset instead of all of its known peers. This can reduce redundant messages in the network. Here, `gossip fanout` indicates the number of target peers while broadcasting blocks and transactions.
 * `normal` or `malicious` peer: A normal peer always generates correct transactions and blocks. Instead, a malicious peer can generate incorrect transactions and blocks (e.g., with the wrong block ID).
-  
-* `lightweight` or `full` peer: In the introduction, we introduce that all peers verify the block and store a copy of the blockchain, which is called full peers. However, in practice, there are some resource-limited devices (e.g., mobile phones and laptops), which do not have enough computing and storage capacities to verify and store all blocks. To solve this issue, Ethereum allows peers to act as lighweight peers, which do not verify blocks adn store all blocks. Instead, lightweight peers store the header of blocks without transactions.
-  
-* `NATed` or `non-NATed` peer: This project considers network address translation (NAT). A NATed peer is generally located in a local network and cannot interact directly with peers outside the local network. Instead, non-NATed peers in the local network act as NAT routers or relaying peers between NATed peers and peers outside the local network. Typically, while forwarding external messages to a peer in a local network, a relaying peer must find the destination peer’s IP address in the local network based on the NAT translation table. Here, to reduce the complexity, we only simulate the logic of NAT and ignore the NAT translation table; that is, a NATed peer has only one IP address across the network.
+* `lightweight` or `full` peer: In the introduction, we introduce that all peers verify the block and store a copy of the blockchain, which is called full peers. However, in practice, there are some resource-limited devices (e.g., mobile phones and laptops), which do not have enough computing and storage capacities to verify and store all blocks. To solve this issue, Ethereum allows peers to act as lightweight peers, which do not verify blocks and store all blocks. Instead, lightweight peers store the header of blocks without transactions.
+* `NATed` or `non-NATed` peer: This project considers network address translation (NAT). A NATed peer is generally located in a local network and cannot interact directly with peers outside the local network. Instead, non-NATed peers in the local network act as NAT routers or relaying peers between NATed peers and peers outside the local network. Typically, when forwarding external messages to a peer in a local network, a relaying peer must find the destination peer's IP address in the local network based on the NAT translation table. Here, to reduce the complexity, we only simulate the logic of NAT and ignore the NAT translation table; that is, a NATed peer has only one IP address across the network.
 
 -----
 
 ### Part 2: Peer Discovery
 
-After creating the TCP socket, the peer informs known peers of its existence in order to exchange data. To do so, the peer must acquire some peers' IP addresses and ports before joining the network. Moreover, the peer periodically check if the known peers are alive. The procedure of peer discovery is as follows:
+After creating the TCP socket, the peer informs known peers of its existence in order to exchange data. To do so, a peer must acquire some peers' IP addresses and ports before joining the network. 
+
+Moreover, a peer needs to periodically check if the known peers are alive. 
+
+The procedure of peer discovery is as follows:
 
 * Say `hello` to its known peers while joining the network.
-  
-* When receiving `hello` message, check if the sender is known. If not, add the sender to the list of known peers.
-  
+* When receiving a `hello` message, check if the sender is known. If not, add the sender to the list of known peers.
 * Periodically send `ping` messages to all known peers and wait for their replies, i.e., `pong` messages.
-  
 * When receiving `pong` messages, update the state of known peers. Moreover, calculate the time difference between sending `ping` messages and receiving `pong` messages, which is the transmission latency between peers. 
-  
 * Remove unresponsive peers if no `pong` messages are received before the timeout.
 
 ------
 
 ### Part 3: Block and Transaction Generation and Verification
 
-After initializing the peer and find the known peers, the full peer starts generating and verifying transactions and blocks. In this project, each full peer periodically generate one transaction and broadcast it to other full peers for verification. A transaction is valid if the transaction ID is correct. These transactions are also stored in the peer's local transaction pool `tx_pool`. 
+After initializing a peer and finding the known peers, a full peer starts generating and verifying transactions and blocks. In this project, each full peer periodically generates one transaction and broadcasts it to other full peers for verification. 
+
+A transaction is valid if the transaction ID is correct. These transactions are also stored in the peer's local transaction pool, `tx_pool`. 
 
 Since we only focus on transaction and block exchange in the blockchain P2P network, we simplify block generation here. Instead of selecting a block generator to generate a block, in each block period, each peer packages transactions in their `tx_pool` into a block independently and broadcasts it to other peers for verification. A block is valid if the `block ID` is correct. 
 
-The procedure of transaction and block generation and verification is as follows:
+The procedure for transaction/block generation and verification is as follows:
 
 * Synchronize the latest blockchain from known peers while joining the network in order to link new blocks to the latest blockchain.
-  
 * Start generating transactions.
-  
 * Broadcast the transactions to known peers for verification.
-  
 * Add the valid transactions to the local `tx_pool`.
-  
 * Package the transactions in the local `tx_pool` into a new block.
-  
 * Broadcast the block to known peers for verification.
-  
 * Add the valid block to the local blockchain.
 
 **Tips:**
@@ -130,14 +125,11 @@ The procedure of transaction and block generation and verification is as follows
 
 ### Part 4: Sending Messages Processing
 
-To simulate the process of sending messages (e.g., transactions and blocks), all sending messages must be put into an outbox queue and sent one by one. The procedure of sending messages is as follows:
+To simulate the process of sending messages (e.g., transactions and blocks), all sending messages must be put into an outbox queue and sent one by one. The procedure for sending messages is as follows:
 
 * When sending a message, add the message to the outbox queue.
-  
 * Read a message from the queue based on their priorities.
-
 * If the message destination is a non-NATed peer, send the message to the destination directly.
-  
 * If the message destination is a NATed peer, find the best relaying peer and send the message to the relaying peer.
 
 --------
@@ -147,11 +139,9 @@ To simulate the process of sending messages (e.g., transactions and blocks), all
 When receiving messages from other peers, the messages must be dispatched and processed based on the message type. The receiving messages processing is as follows:
 
 * Check whether the message sender is banned. Drop the message if the sender is banned.
-  
 * Check whether the number of messages sent by the sender is within the limit. Drop the message if the sender sends messages too frequently. This is to prevent denial-of-service (DoS) attacks.
-  
 * Check the message type and process the messages accordingly:
-  
+
   * msg.type=`TX`,
     * Check the validity of the transaction. If invalid, drop the transaction and record the sender's offence.
     * Check whether the transaction has been received. If yes, drop the transaction to prevent replay attacks.
@@ -191,24 +181,18 @@ When receiving messages from other peers, the messages must be dispatched and pr
 Start a dashboard server to display the following message:
 
 * `Localhost: port/peers`: display the set of known peers.
-  
 * `Localhost: port/transactions`: display the transactions in the local pool.
-  
 * `Localhost: port/blocks`: display the blocks in the local blockchain.
-  
 * `Localhost: port/orphan`: display the orphaned blocks.
-  
 * `Localhost: port/latency`: display the transmission latency between peers.
-  
 * `Localhost: port/capacity`: display the sending capacity of the peers.
-  
 * `Localhost: port/redundancy`: display the number of redundant messages received.
 
 -------
 
 ## 3. Functions to Complete
 
-The operation logic of the project is given in the `Main` function of `node.py`. In the following, the functions to be completed in each part are explained as follows.
+The operation logic of the project is given in the `Main` function of `node.py`. Your task is to implement the following modules:
 
 -------
 
@@ -217,9 +201,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 1. `start_socket_server` 
 
 * Create a TCP socket and bind it to the peer’s IP address and port.
-  
 * Start listening on the socket for receiving incoming messages.
-
 * When receiving messages, pass the messages to the function `dispatch_message` in `message_handler.py`.
 
 -------
@@ -231,15 +213,12 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 1. `start_peer_discovery` 
    
 * Define the JSON format of a `hello` message, which should include: `{message type, sender’s ID, IP address, port, flags, and message ID}`. A `sender’s ID` can be `peer_port`. The `flags` should indicate whether the peer is `NATed or non-NATed`, and `full or lightweight`. The `message ID` can be a random number.
-
 * Send a `hello` message to all known peers and put the messages into the outbox queue.
   
 2. `handle_hello_message`
 
 * Read information in the received `hello` message.
-     
 * If the sender is unknown, add it to the list of known peers (`known_peer`) and record their flags (`peer_flags`).
-     
 * Update the set of reachable peers (`reachable_by`).
 
 **Tips:** Each peer can only receive `hello` messages from reachable peers and never forward `hello` messages. If a peer receives `hello` messages from a NATed peer, it can act as the relaying peers of the NATed peer.
@@ -286,7 +265,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 1. `transaction_generation`
 
-* Randomly choose a peer from `known_peers` and generate a transaction to transfer arbitrary amount of money to the peer.
+* Randomly choose a peer from `known_peers` and generate a transaction to transfer an arbitrary amount of money to the peer.
 
 * Add the transaction to local `tx_pool` using the function `add_transaction`.
 
@@ -324,7 +303,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 3. `create_dummy_block`
 
-* Define the JSON format of a `block`, which should include `{message type, peer's ID, timestamp, block ID, previous block's ID, and transactions}`. The `block ID` is the hash value of block structure except for the item `block ID`. `previous block` is the last block in the blockchain, to which the new block will be linked. If the block generator is malicious, it can generate random block ID.
+* Define the JSON format of a `block`, which should include `{message type, peer's ID, timestamp, block ID, previous block's ID, and transactions}`. The `block ID` is the hash value of the block structure, except for the item `block ID`. `previous block` is the last block in the blockchain, to which the new block will be linked. If the block generator is malicious, it can generate a random block ID.
 
 * Read the transactions in the local `tx_pool` using the function `get_recent_transactions` in `transaction.py`.
 
@@ -354,11 +333,11 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Return the block in the local blockchain based on the block ID.
 
-#### inv_message.py: This part process `INV` message while exchanging blocks.
+#### inv_message.py: This part processes the `INV` message while exchanging blocks.
 
 1. `create_inv`
 
-* Define the JSON format of an `INV` message, which should include `{message type, sender's ID, sending blocks' IDs, message ID}`. Note that `INV` messages are sent before sending blocks. `sending blocks' IDs` is the ID of blocks that the sender want to send. `message ID` can be a random number generated by `generate_message_id` in `util.py`.
+* Define the JSON format of an `INV` message, which should include `{message type, sender's ID, sending blocks' IDs, message ID}`. Note that `INV` messages are sent before sending blocks. `sending blocks' IDs` is the ID of blocks that the sender wants to send. `message ID` can be a random number generated by `generate_message_id` in `util.py`.
 
 2. `get_inventory`
 
@@ -374,9 +353,9 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 ### Part 4: Sending Message Processing (outbox.py)
 
-1. `enqueue_message`: This function put all sending messages into an outbox queue.
+1. `enqueue_message`: This function puts all sending messages into an outbox queue.
 
-* Check if the peer sends message to the receiver too frequently using the function `is_rate_limited`. If yes, drop the message.
+* Check if the peer sends a message to the receiver too frequently using the function `is_rate_limited`. If yes, drop the message.
   
 * Check if the receiver exists in the `blacklist`. If yes, drop the message.
   
@@ -398,9 +377,9 @@ The operation logic of the project is given in the `Main` function of `node.py`.
    
 * Read the message in the queue. Each time, read one message with the highest priority of a target peer. After sending the message, read the message of the next target peer. This ensures the fairness of sending messages to different target peers.
 
-* Send the message using the function `relay_or_direct_send`, which will decide whether to send the message to target peer directly or through a relaying peer.
+* Send the message using the function `relay_or_direct_send`, which will decide whether to send the message to the target peer directly or through a relaying peer.
 
-* Retry a message if it is sent unsuccessfully and drop the message if the retry times exceed the limit `MAX_RETRIES`.
+* Retry a message if it is sent unsuccessfully, and drop the message if the retry times exceed the limit `MAX_RETRIES`.
 
 5. `relay_or_direct_send`
 
@@ -422,7 +401,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Send the message to the target peer. Wrap the function `send_message` with the dynamic network condition in the function `apply_network_condition`.
 
-8. `apply_network_conditions`: This function simulates the peer's sending capacity control, message drop and message transmission latency.
+8. `apply_network_conditions`: This function simulates the peer's sending capacity control, message drop, and message transmission latency.
 
 * Use the function `rate_limiter.allow` to check if the peer's sending rate is out of limit. If yes, drop the message and update the drop states (`drop_stats`).
 
@@ -434,13 +413,13 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 9. `start_dynamic_capacity_adjustment`
 
-* Peridically change the peer's sending capacity in `rate_limiter` within the range [2, 10].
+* Periodically change the peer's sending capacity in `rate_limiter` within the range [2, 10].
 
 10. `gossip_message`
 
 * Read the configuration `fanout` of the peer in `peer_config` of `peer_discovery.py`.
 
-* Randomly select the number of target peer from `known_peers`, which is equal to `fanout`. If the gossip message is a transaction, skip the lightweight peers in the `know_peers`.
+* Randomly select the number of target peers from `known_peers`, which is equal to `fanout`. If the gossip message is a transaction, skip the lightweight peers in the `know_peers`.
 
 * Send the message to the selected target peer and put them in the outbox queue.
 
@@ -462,7 +441,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Check if the message has been seen in `seen_message_ids` to prevent replay attacks. If yes, drop the message and add one to `message_redundancy`. If not, add the message ID to `seen_message_ids`.
 
-* Check if the sender sends message too frequently using the function `in_bound_limited`. If yes, drop the message.
+* Check if the sender sends messages too frequently using the function `in_bound_limited`. If yes, drop the message.
 
 * Check if the sender exists in the `blacklist` of `peer_manager.py`. If yes, drop the message.
 
@@ -471,19 +450,19 @@ The operation logic of the project is given in the `Main` function of `node.py`.
    * msg_type == "RELAY":
         * Check if the peer is the target peer.
         * If yes, extract the payload and recall the function `dispatch_message` to process the payload.
-        * If not, forward the message to target peer using the function `enqueue_message` in `outbox.py`.
+        * If not, forward the message to the target peer using the function `enqueue_message` in `outbox.py`.
     
    * msg_type == "HELLO"
         * Call the function `handle_hello_message` in `peer_discovery.py` to process the message.
     
    * msg_type == "BLOCK"
-        * Check the correctness of block ID. If incorrect, record the sender's offence using the function `record_offence` in `peer_manager.py`.
+        * Check the correctness of the block ID. If incorrect, record the sender's offence using the function `record_offence` in `peer_manager.py`.
         * Call the function `handle_block` in `block_handler.py` to process the block.
         * Call the function `create_inv` to create an `INV` message for the block.
         * Broadcast the `INV` message to known peers using the function `gossip_message` in `outbox.py`.
    
    * msg_type == "TX"
-        * Check the correctness of transaction ID. If incorrect, record the sender's offence using the function `record_offence` in `peer_manager.py`.
+        * Check the correctness of the transaction ID. If incorrect, record the sender's offence using the function `record_offence` in `peer_manager.py`.
         * Add the transaction to `tx_pool` using the function `add_transaction` in `transaction.py`.
         * Broadcast the transaction to known peers using the function `gossip_message` in `outbox.py`.
     
@@ -497,7 +476,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
         * Call the function `handle_pong` in `peer_manager.py` to handle the message.
  
    * msg_type == "INV"
-        * Read all blocks IDs in the local blockchain using the function `get_inventory` in `block_handler.py`.
+        * Read all block IDs in the local blockchain using the function `get_inventory` in `block_handler.py`.
         * Compare the local block IDs with those in the message.
         * If there are missing blocks, create a `GETBLOCK` message to request the missing blocks from the sender.
         * Send the `GETBLOCK` message to the sender using the function `enqueue_message` in `outbox.py`.
@@ -511,7 +490,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
         * If the blocks exist in the local blockchain, send the blocks one by one to the requester using the function `enqueue_message` in `outbox.py`.
     
    * msg_type == "GET_BLOCK_HEADERS"
-        * Read all block header in the local blockchain and store them in `headers`.
+        * Read all block headers in the local blockchain and store them in `headers`.
         * Create a `BLOCK_HEADERS` message, which should include `{message type, sender's ID, headers}`.
         * Send the `BLOCK_HEADERS` message to the requester using the function `enqueue_message` in `outbox.py`.
     
@@ -523,7 +502,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
     
 2. `is_inbound_limited`
 
-* Record the timestamp when receiving message from a sender.
+* Record the timestamp when receiving a message from a sender.
 * Check if the number of messages sent by the sender exceeds `INBOUND_RATE_LIMIT` during the `INBOUND_TIME_WINDOW`. If yes, return `TRUE`. If not, return `FALSE`.
 
 3. `get_redundancy_stats`
@@ -552,21 +531,21 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 ## 4. Test Method
 
-This project will deploy the blockchain P2P network based on the Docker technology where each peer runs in an independent container. The procedure to run a peer in a container can be summarized as follows:
+This project will deploy the blockchain P2P network based on Docker technology, where each peer runs in an independent container. The procedure to run a peer in a container can be summarized as follows:
 
 1) Write a `Dockerfile` to build a container image for a peer. The image can be used to generate multiple containers, i.e., peers.
-2) Define the peers in `docker-compose.yml`, including the number of containers, how the containers run and connect with each other.
+2) Define the peers in `docker-compose.yml`, including the number of containers, how the containers run, and connect with each other.
 3) Use `docker compose build` to build the image for all services in `docker-compose.yml`.
-4) Use `docker compose up` to generate and start containers speficied in `docker-compose.yml`.
+4) Use `docker compose up` to generate and start containers specified in `docker-compose.yml`.
 
 We have provided the `Dockerfile` and `docker-compose.yml` in the starter code with ten peers. With these two files, we will use the following commands to check your project:
-1) `docker compose up --build` to check if each peer run correctly.
+1) `docker compose up --build` to check if each peer runs correctly.
 2) `localhost:port/{parameter}` to check whether the peers generate and transmit transactions and blocks correctly.
 
 **Bonus:**
-1) **Dynamic Blockchain Network**: In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify docker files to allow peers to dynamically join or leave the system while do not affect the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all peers existing in the network.
+1) **Dynamic Blockchain Network**: In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify Docker files to allow peers to dynamically join or leave the system without affecting the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all the peers existing in the network.
 
-2) **Causes of Redundant Messages**: Explore the parameters that can affect the number of redundant messages received by a peer, for example, the larger `fanout` is, the more messages are transmitted to the network and received by a peer. Change the values of the parameters to observe the number of redundant messages received by a peer. Draw figures to show their relationship.
+2) **Causes of Redundant Messages**: Explore the parameters that can affect the number of redundant messages received by a peer, for example, the larger the `fanout` is, the more messages are transmitted to the network and received by a peer. Change the values of the parameters to observe the number of redundant messages received by a peer. Draw figures to show their relationship.
 
 ------------
 
