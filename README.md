@@ -324,7 +324,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Check if the block exists in the local blockchain. If yes, drop the block.
 
-* Check if the previous block of the block exists in the local blockchain. If not, add the block to the list of orphaned blocks (`orphan_blocks`). If yes, add the block to the local blockchain.
+* Check if the previous block of the block exists in the local blockchain. If not, add the block to the list of orphaned blocks (`orphan_blocks`). If yes, add the block (for full peer) or the block header (for lightweight peer) to the local blockchain.
 
 * Check if the block is the previous block of blocks in `orphan_blocks`. If yes, add the orphaned blocks to the local blockchain.
 
@@ -353,9 +353,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 * Broadcast the `INV` message to known peers using the function `gossip_message` in `outbox.py` to synchronize the blockchain with known peers.
 
 
-### Part 3: Sending Messages 
-
-#### outbox.py: This part is responsible for sending messages to target peers.
+### Part 4: Sending Message Processing (outbox.py)
 
 1. `enqueue_message`: This function put all sending messages into an outbox queue.
 
@@ -376,7 +374,6 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 3. `classify_priority`
    
 *	Classify the priority of a message based on the message type.
-
 
 4. `send_from_queue` (`outbox.py`)
    
@@ -420,7 +417,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Peridically change the peer's sending capacity in `rate_limiter` within the range [2, 10].
 
-10. `gossip`
+10. `gossip_message`
 
 * Read the configuration `fanout` of the peer in `peer_config` of `peer_discovery.py`.
 
@@ -436,6 +433,84 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Return the drop states (`drop_stats`).
 
+### PART 4: Receiving Message Processing (message_handler.py)
+
+1. `dispatch_message`
+
+* Read the message.
+
+* Check if the message has been seen in `seen_message_ids` to prevent replay attacks. If yes, drop the message and add one to `message_redundancy`. If not, add the message ID to `seen_message_ids`.
+
+* Check if the sender sends message too frequently using the function `in_bound_limited`. If yes, drop the message.
+
+* Check if the sender exists in the `blacklist` of `peer_manager.py`. If yes, drop the message.
+
+* Process the message according to the message type:
+
+   * msg_type == "RELAY":
+        * Check if the peer is the target peer.
+        * If yes, extract the payload and recall the function `dispatch_message` to process the payload.
+        * If not, forward the message to target peer using the function `enqueue_message` in `outbox.py`.
+    
+   * msg_type == "HELLO"
+        * Call the function `handle_hello_message` in `peer_discovery.py` to process the message.
+    
+   * msg_type == "BLOCK"
+        * Check the correctness of block ID. If incorrect, record the sender's offence using the function `record_offence` in `peer_manager.py`.
+        * Call the function `handle_block` in `block_handler.py` to process the block.
+        * Call the function `create_inv` to create an `INV` message for the block.
+        * Broadcast the `INV` message to known peers using the function `gossip_message` in `outbox.py`.
+   
+   * msg_type == "TX"
+        * Check the correctness of transaction ID. If incorrect, record the sender's offence using the function `record_offence` in `peer_manager.py`.
+        * Add the transaction to `tx_pool` using the function `add_transaction` in `transaction.py`.
+        * Broadcast the transaction to known peers using the function `gossip_message` in `outbox.py`.
+    
+   * msg_type == "PING"
+        * Update the last ping time using the function `update_peer_heartbeat` in `peer_manager.py`.
+        * Create a `pong` message using the function `create_pong` in `peer_manager.py`.
+        * Send the `pong` message to the sender using the function `enqueue_message` in `outbox.py`.
+    
+   * msg_type == "PONG"
+        * Update the last ping time using the function `update_peer_heartbeat` in `peer_manager.py`.
+        * Call the function `handle_pong` in `peer_manager.py` to handle the message.
+ 
+   * msg_type == "INV"
+        * Read all blocks IDs in the local blockchain using the function `get_inventory` in `block_handler.py`.
+        * Compare the local block IDs with those in the message.
+        * If there are missing blocks, create a `GETBLOCK` message to request the missing blocks from the sender.
+        * Send the `GETBLOCK` message to the sender using the function `enqueue_message` in `outbox.py`.
+    
+   * msg_type == "GETBLOCK"
+        * Extract the block IDs from the message.
+        * Get the blocks from the local blockchain according to the block IDs using the function `get_block_by_id` in `block_handler.py`.
+        * If the blocks are not in the local blockchain, create a `GETBLOCK` message to request the missing blocks from known peers.
+        * Send the `GETBLOCK` message to known peers using the function `enqueue_message` in `outbox.py`.
+        * Retry getting the blocks from the local blockchain. If the retry times exceed 3, drop the message.
+        * If the blocks exist in the local blockchain, send the blocks one by one to the requester using the function `enqueue_message` in `outbox.py`.
+    
+   * msg_type == "GET_BLOCK_HEADERS"
+        * Read all block header in the local blockchain and store them in `headers`.
+        * Create a `BLOCK_HEADERS` message, which should include `{message type, sender's ID, headers}`.
+        * Send the `BLOCK_HEADERS` message to the requester using the function `enqueue_message` in `outbox.py`.
+    
+   * msg_type == "BLOCK_HEADERS"
+        * Check if the previous block of each block exists in the local blockchain or the received block headers.
+        * If yes and the peer is lightweight, add the block headers to the local blockchain.
+        * If yes and the peer is full, check if there are missing blocks in the local blockchain. If there are missing blocks, create a `GET_BLOCK` message and send it to the sender.
+        * If not, drop the message since there are orphaned blocks in the received message and, thus, the message is invalid.
+    
+2. `is_inbound_limited`
+
+* Record the timestamp when receiving message from a sender.
+* Check if the number of messages sent by the sender exceeds `INBOUND_RATE_LIMIT` during the `INBOUND_TIME_WINDOW`. If yes, return `TRUE`. If not, return `FALSE`.
+
+3. `get_redundancy_stats`
+
+* Return the times of receiving duplicated messages (`message_redundancy`).
+ 
+    
+   
 
 
 
