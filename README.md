@@ -125,7 +125,7 @@ To simulate the process of sending messages (e.g., transactions and blocks), all
   
 * If the message destination is a NATed peer, find the best relaying peer and send the message to the relaying peer.
 
-### Part 4: Receiving Messages Processing
+### Part 5: Receiving Messages Processing
 
 When receiving messages from other peers, the messages must be dispatched and processed based on the message type. The receiving messages processing is as follows:
 
@@ -168,7 +168,7 @@ When receiving messages from other peers, the messages must be dispatched and pr
     * Request the missing block from known peers if the peer is a full peer.
 
 
-### Part 5: Start Dashboard
+### Part 6: Start Dashboard
 
 Start a dashboard server to display the following message:
 
@@ -187,8 +187,6 @@ Start a dashboard server to display the following message:
 * `Localhost: port/capacity`: display the sending capacity of the peers.
   
 * `Localhost: port/redundancy`: display the number of redundant blocks and transactions received.
-  
-* `Localhost: port/scores`: display peers' scores in the network.
 
 
 ## 3. Functions to Complete
@@ -433,7 +431,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Return the drop states (`drop_stats`).
 
-### PART 4: Receiving Message Processing (message_handler.py)
+### PART 5: Receiving Message Processing (message_handler.py)
 
 1. `dispatch_message`
 
@@ -508,6 +506,24 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 3. `get_redundancy_stats`
 
 * Return the times of receiving duplicated messages (`message_redundancy`).
+
+### PART 6: Dashboard (dashboard.py)
+
+* `peers`: display the set of known peers.
+  
+* `status`: display the status of peers in the network.
+  
+* `transactions`: display the transactions in the local pool.
+  
+* `blocks`: display the blocks in the local blockchain.
+  
+* `orphan`: display the orphaned blocks.
+  
+* `latency`: display the transmission latency between peers.
+  
+* `capacity`: display the sending capacity of the peers.
+  
+* `redundancy`: display the number of redundant blocks and transactions received.
  
     
    
