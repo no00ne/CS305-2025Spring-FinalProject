@@ -52,6 +52,8 @@ In this project, we will focus on how peers in a blockchain system communicate t
 
 Figure 3 shows the relationship between different functionalities. In the following, we introduce each functionalities in detail.
 
+-----
+
 ### Part 1: Peer Initialization
 
 When a new peer join the blockchain network, it must
@@ -74,6 +76,8 @@ After that, the peer can
   
 * `NATed` or `non-NATed` peer: This project considers network address translation (NAT). A NATed peer is generally located in a local network and cannot interact directly with peers outside the local network. Instead, non-NATed peers in the local network act as NAT routers or relaying peers between NATed peers and peers outside the local network. Typically, while forwarding external messages to a peer in a local network, a relaying peer must find the destination peer’s IP address in the local network based on the NAT translation table. Here, to reduce the complexity, we only simulate the logic of NAT and ignore the NAT translation table; that is, a NATed peer has only one IP address across the network.
 
+-----
+
 ### Part 2: Peer Discovery
 
 After creating the TCP socket, the peer informs known peers of its existence in order to exchange data. To do so, the peer must acquire some peers' IP addresses and ports before joining the network. Moreover, the peer periodically check if the known peers are alive. The procedure of peer discovery is as follows:
@@ -87,6 +91,8 @@ After creating the TCP socket, the peer informs known peers of its existence in 
 * When receiving `pong` messages, update the state of known peers. Moreover, calculate the time difference between sending `ping` messages and receiving `pong` messages, which is the transmission latency between peers. 
   
 * Remove unresponsive peers if no `pong` messages are received before the timeout.
+
+------
 
 ### Part 3: Block and Transaction Generation and Verification
 
@@ -115,6 +121,8 @@ The procedure of transaction and block generation and verification is as follows
   
 * When receiving a `GETBLOCK` message, a peer replies with the block if the sender is a full peer; otherwise, a peer replies with the block's header because lightweight peers only store the header of blocks.
 
+------
+
 ### Part 4: Sending Messages Processing
 
 To simulate the process of sending messages (e.g., transactions and blocks), all sending messages must be put into an outbox queue and sent one by one. The procedure of sending messages is as follows:
@@ -126,6 +134,8 @@ To simulate the process of sending messages (e.g., transactions and blocks), all
 * If the message destination is a non-NATed peer, send the message to the destination directly.
   
 * If the message destination is a NATed peer, find the best relaying peer and send the message to the relaying peer.
+
+--------
 
 ### Part 5: Receiving Messages Processing
 
@@ -169,6 +179,7 @@ When receiving messages from other peers, the messages must be dispatched and pr
     * Check the validity of the list of block headers by checking whether the previous block of each block exists in the blockchain.
     * Request the missing block from known peers if the peer is a full peer.
 
+-------
 
 ### Part 6: Start Dashboard
 
@@ -194,6 +205,8 @@ Start a dashboard server to display the following message:
 
 The operation logic of the project is given in the `Main` function of `node.py`. In the following, the functions to be completed in each part are explained as follows.
 
+-------
+
 ### Part 1: Peer Initialization (`socket_server.py`)
 
 1. `start_socket_server` 
@@ -203,6 +216,8 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 * Start listening on the socket for receiving incoming messages.
 
 * When receiving messages, pass the messages to the function `dispatch_message` in `message_handler.py`.
+
+-------
 
 ### Part 2: Peer Discovery 
 
@@ -258,6 +273,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Add a peer to `blacklist` if its offence times exceed 3.
 
+--------
 
 ### Part 3: Block and Transaction Generation and Verification
 
@@ -349,6 +365,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Broadcast the `INV` message to known peers using the function `gossip_message` in `outbox.py` to synchronize the blockchain with known peers.
 
+---------
 
 ### Part 4: Sending Message Processing (outbox.py)
 
@@ -430,6 +447,8 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Return the drop states (`drop_stats`).
 
+--------
+
 ### PART 5: Receiving Message Processing (message_handler.py)
 
 1. `dispatch_message`
@@ -505,6 +524,8 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 3. `get_redundancy_stats`
 
 * Return the times of receiving duplicated messages (`message_redundancy`).
+
+---------
 
 ### PART 6: Dashboard (dashboard.py)
 
