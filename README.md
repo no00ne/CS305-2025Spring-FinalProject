@@ -1,5 +1,10 @@
 # CS305 2025 Spring Final Project - Blockchain Network Simulation
 
+**We will grade all the projects based on the latest version of this specification. Please read this project specification carefully and keep track of the updates!!!**.
+
+**IMPORTANT NOTE: We try our best to make this specification as clear as possible and cover all the problems we met during our testing. However, it is not uncommon for us to still miss important details in this specification. If anything is unclear, you should submit issues in this repository or contact the instructors and SAs immediately rather than guessing what you must do. Again, if you have any questions, please confirm with the instructors and SAs before starting**.
+
+
 ## 1. Introduction
 
 Bitcoin and Ethereum are the most well-known and popular cryptocurrency systems with high security and privacy preservation. In these systems, users can freely exchange digital coins (e.g., BTC and ETH) without exposing their identities and relying on any centralized entities, e.g., banks or Alipay. These advantages originate in their underlying technology -- **Blockchain**.  
