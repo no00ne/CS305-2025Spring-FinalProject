@@ -38,6 +38,8 @@ In this project, we will focus on how peers in a blockchain system communicate t
 
 </div>
 
+-------------------
+
 ## 2. Functionality of the Blockchain P2P Network
 
 <div align="center">
@@ -186,6 +188,7 @@ Start a dashboard server to display the following message:
   
 * `Localhost: port/redundancy`: display the number of redundant messages received.
 
+-------
 
 ## 3. Functions to Complete
 
@@ -248,8 +251,6 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 5. `update_peer_heartbeat`
 
 * Update the `last_ping_time` of a peer when receiving its `ping` or `pong` message.
-
---------------------------------------------------
 
 6. `record_offense`
 
@@ -521,6 +522,8 @@ The operation logic of the project is given in the `Main` function of `node.py`.
   
 * `redundancy`: display the number of redundant messages received.
 
+---------
+
 ## 4. Test Method
 
 This project will deploy the blockchain P2P network based on the Docker technology where each peer runs in an independent container. The procedure to run a peer in a container can be summarized as follows:
@@ -536,6 +539,9 @@ We have provided the `Dockerfile` and `docker-compose.yml` in the starter code w
 
 **Bonus:**
 In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify docker files to allow peers to dynamically join or leave the system while do not affect the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all peers existing in the network.
+
+------------
+
 
 ## 5. Grading
  
