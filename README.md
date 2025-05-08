@@ -559,15 +559,28 @@ We have provided the `Dockerfile` and `docker-compose.yml` in the starter code w
 2) `localhost:port/{parameter}` to check whether the peers generate and transmit transactions and blocks correctly.
 
 **Bonus:**
-In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify docker files to allow peers to dynamically join or leave the system while do not affect the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all peers existing in the network.
+1) **Dynamic Blockchain Network**: In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify docker files to allow peers to dynamically join or leave the system while do not affect the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all peers existing in the network.
+
+2) **Causes of Redundant Messages**: Explore the parameters that can affect the number of redundant messages received by a peer, for example, the larger `fanout` is, the more messages are transmitted to the network and received by a peer. Change the values of the parameters to observe the number of redundant messages received by a peer. Draw figures to show their relationship.
 
 ------------
 
 
 ## 5. Grading
+
+**Total Points: 100 pts**
+
+1) Peer Initialization (5 pts)
+2) Peer Discovery (10 pts)
+3) Block and Transaction Generation and Verification (25 pts)
+4) Sending Message Processing (30 pts)
+5) Receiving Message Processing (25 pts)
+6) Dashboard (5 pts)
  
-    
-   
+**Bonus Points: 20 pts**
+
+1) Dynamic Blockchain Network (10 pts)
+2) Causes of Redundant Messages (10 pts)
 
 
 
