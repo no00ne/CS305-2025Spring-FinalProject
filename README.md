@@ -520,6 +520,24 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 * `capacity`: display the sending capacity of the peer.
   
 * `redundancy`: display the number of redundant messages received.
+
+## 4. Test Method
+
+This project will deploy the blockchain P2P network based on the Docker technology where each peer runs in an independent container. The procedure to run a peer in a container can be summarized as follows:
+
+1) Write a `Dockerfile` to build a container image for a peer. The image can be used to generate multiple containers, i.e., peers.
+2) Define the peers in `docker-compose.yml`, including the number of containers, how the containers run and connect with each other.
+3) Use `docker compose build` to build the image for all services in `docker-compose.yml`.
+4) Use `docker compose up` to generate and start containers speficied in `docker-compose.yml`.
+
+We have provided the `Dockerfile` and `docker-compose.yml` in the starter code with ten peers. With these two files, we will use the following commands to check your project:
+1) `docker compose up --build` to check if each peer run correctly.
+2) `localhost:port/{parameter}` to check whether the peers generate and transmit transactions and blocks correctly.
+
+**Bonus:**
+In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify docker files to allow peers to dynamically join or leave the system while do not affect the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all peers existing in the network.
+
+## 5. Grading
  
     
    
