@@ -174,8 +174,6 @@ Start a dashboard server to display the following message:
 
 * `Localhost: port/peers`: display the set of known peers.
   
-* `Localhost: port/status`: display the status of peers in the network.
-  
 * `Localhost: port/transactions`: display the transactions in the local pool.
   
 * `Localhost: port/blocks`: display the blocks in the local blockchain.
@@ -186,7 +184,7 @@ Start a dashboard server to display the following message:
   
 * `Localhost: port/capacity`: display the sending capacity of the peers.
   
-* `Localhost: port/redundancy`: display the number of redundant blocks and transactions received.
+* `Localhost: port/redundancy`: display the number of redundant messages received.
 
 
 ## 3. Functions to Complete
@@ -509,11 +507,9 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 ### PART 6: Dashboard (dashboard.py)
 
-* `peers`: display the set of known peers.
+* `peers`: display the information of known peers, including `{peer's ID, IP address, port, status, NATed or non-NATed, lightweight or full}`.
   
-* `status`: display the status of peers in the network.
-  
-* `transactions`: display the transactions in the local pool.
+* `transactions`: display the transactions in the local pool `tx_pool`.
   
 * `blocks`: display the blocks in the local blockchain.
   
@@ -521,9 +517,9 @@ The operation logic of the project is given in the `Main` function of `node.py`.
   
 * `latency`: display the transmission latency between peers.
   
-* `capacity`: display the sending capacity of the peers.
+* `capacity`: display the sending capacity of the peer.
   
-* `redundancy`: display the number of redundant blocks and transactions received.
+* `redundancy`: display the number of redundant messages received.
  
     
    
