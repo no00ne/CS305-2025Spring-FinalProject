@@ -118,8 +118,6 @@ The procedure for transaction/block generation and verification is as follows:
 
 **Tips:**
 * When a peer sends a block to another, the sender usually sends an `INV` message with the block ID instead of the block itself. If the receiver finds that it has not yet received the block, the receiver will reply with a `GETBLOCK` message to request the block. This can reduce the network overhead.
-  
-* When receiving a `GETBLOCK` message, a peer replies with the block if the sender is a full peer; otherwise, a peer replies with the block's header because lightweight peers only store the header of blocks.
 
 ------
 
