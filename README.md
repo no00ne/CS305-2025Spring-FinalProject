@@ -289,7 +289,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Define the JSON format of a `GET_BLOCK_HEADERS`, which should include `{message type, sender's ID}`.
 
-* Send a `GET_BLOCK_HEADERS` message to each known peer and put the messages in the outbox queue.
+* Send a `GET_BLOCK_HEADERS` message to each known peer (to obtain the list of block headers in the latest blockchain) and put the messages in the outbox queue.
 
 2. `block_generation`
 
