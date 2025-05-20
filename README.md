@@ -303,11 +303,11 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Define the JSON format of a `block`, which should include `{message type, peer's ID, timestamp, block ID, previous block's ID, and transactions}`. The `block ID` is the hash value of the block structure, except for the item `block ID`. `previous block` is the last block in the blockchain, to which the new block will be linked. If the block generator is malicious, it can generate a random block ID.
 
-* Read the transactions in the local `tx_pool` using the function `get_recent_transactions` in `transaction.py`.
+* Read the transactions in the local `tx_pool` using the function `get_recent_transactions` in `transaction.py` before clearing the local transaction pool.
 
 * Create a new block with the transactions and generate the block ID using the function `compute_block_hash`.
      
-* Clear the local transaction pool and add the new block into the local blockchain (`receive_block`).
+* Add the new block into the local blockchain (`receive_block`).
 
 4. `compute_block_hash`
 
