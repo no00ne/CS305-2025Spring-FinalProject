@@ -225,7 +225,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 1. `start_ping_loop`
 
-* Define the JSON format of a `ping` message, which should include `{message typy, sender's ID, timestamp}`.
+* Define the JSON format of a `ping` message, which should include `{message type, sender's ID, timestamp}`.
 
 * Send a `ping` message to each known peer periodically.
 
