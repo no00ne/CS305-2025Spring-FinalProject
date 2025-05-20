@@ -152,7 +152,7 @@ When receiving messages from other peers, the messages must be dispatched and pr
     * Check whether the block has been received. If yes, drop the block to prevent replay attacks.
     * Record the count of redundant blocks if they have been received.
     * Add the new block to the list of orphaned blocks if its previous block does not exist in the blockchain due to network delay.
-    * Add the new block to the local blockchain if its prevent block exists in the blockchain.
+    * Add the new block to the local blockchain if its previous block exists in the blockchain.
     * Check whether the new block is the previous block of the orphaned blocks.
     * Broadcast the new block to known peers.
       
