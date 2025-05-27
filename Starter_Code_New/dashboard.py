@@ -54,6 +54,11 @@ def orphan_blocks():
     # TODO: display the orphaned blocks.
     pass
 
+@app.route('/queue')
+def message_queue():
+    # TODO: display the messages in the outbox queue.
+    pass
+
 @app.route('/redundancy')
 def redundancy_stats():
     # TODO: display the number of redundant messages received.
