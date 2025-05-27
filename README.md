@@ -185,6 +185,7 @@ Start a dashboard server to display the following message:
 * `Localhost: port/latency`: display the transmission latency between peers.
 * `Localhost: port/capacity`: display the sending capacity of the peers.
 * `Localhost: port/redundancy`: display the number of redundant messages received.
+* `Localhost: port/queue`: display the message in the outbox queue.
 
 -------
 
@@ -524,6 +525,8 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 * `capacity`: display the sending capacity of the peer.
   
 * `redundancy`: display the number of redundant messages received.
+
+* `queue`: display the message in the outbox queue.
 
 ---------
 
