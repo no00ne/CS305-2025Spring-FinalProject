@@ -64,4 +64,9 @@ def redundancy_stats():
     # TODO: display the number of redundant messages received.
     pass
 
+@app.route('/blacklist')
+def message_queue():
+    # TODO: display the blacklist.
+    pass
+
 
