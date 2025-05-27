@@ -65,7 +65,7 @@ def redundancy_stats():
     pass
 
 @app.route('/blacklist')
-def message_queue():
+def blacklist_display():
     # TODO: display the blacklist.
     pass
 
