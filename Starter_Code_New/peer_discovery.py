@@ -15,7 +15,7 @@ def start_peer_discovery(self_id, self_info):
         # The `flags` should indicate whether the peer is `NATed or non-NATed`, and `full or lightweight`. 
         # The `message ID` can be a random number.
 
-        # TODO: Send a `hello` message to all known peers and put the messages into the outbox queue.
+        # TODO: Send a `hello` message to all reachable peers and put the messages into the outbox queue.
         pass
     threading.Thread(target=loop, daemon=True).start()
 
