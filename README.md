@@ -213,7 +213,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 1. `start_peer_discovery` 
    
 * Define the JSON format of a `hello` message, which should include: `{message type, sender’s ID, IP address, port, flags, and message ID}`. A `sender’s ID` can be `peer_port`. The `flags` should indicate whether the peer is `NATed or non-NATed`, and `full or lightweight`. The `message ID` can be a random number.
-* Send a `hello` message to all known peers and put the messages into the outbox queue.
+* Send a `hello` message to all reachable peers and put the messages into the outbox queue.
   
 2. `handle_hello_message`
 
@@ -221,8 +221,7 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 * If the sender is unknown, add it to the list of known peers (`known_peer`) and record their flags (`peer_flags`).
 * Update the set of reachable peers (`reachable_by`).
 
-**Tips:** Each peer can only receive `hello` messages from reachable peers and never forward `hello` messages. If a peer receives `hello` messages from a NATed peer, it can act as the relaying peers of the NATed peer.
-
+**Tips:** Each peer can only receive `hello` messages from reachable peers and never forward `hello` messages. A NATed peer can only say `hello` to peers in the same local network. If a peer receives `hello` messages from a NATed peer, it can act as the relaying peers of the NATed peer. If a peer and a NATed peer are not in the same local network, they cannot say `hello` to each other.
 #### `peer_manager.py`: This part is responsible for checking the status and recording the performance of known peers.
 
 1. `start_ping_loop`
