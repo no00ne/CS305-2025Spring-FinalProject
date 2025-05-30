@@ -70,7 +70,7 @@ Figure 3 shows the relationship between different functionalities. Each core com
 ### Part 1: Peer Initialization
 
 Upon joining the network, a peer:
-* configures its `IP address`, `port`, and `gossip fanout`, and
+* Configures its `IP address`, `port`, and `gossip fanout`, and `localnetworkid`.
 * Chooses its role: `normal` or `malicious`, `lightweight` or `full`, `NATed` or `non-NATed`.
 * Initializes a TCP socket to receive incoming messages.
 
@@ -79,6 +79,7 @@ Upon joining the network, a peer:
 * `normal` or `malicious` peer: A normal peer always generates correct transactions and blocks. Instead, a malicious peer can generate incorrect transactions and blocks (e.g., with the wrong block ID).
 * `lightweight` or `full` peer: In the introduction, we introduce that all peers verify the block and store a copy of the blockchain, which is called full peers. However, in practice, there are some resource-limited devices (e.g., mobile phones and laptops), which do not have enough computing and storage capacities to verify and store all blocks. To solve this issue, Ethereum allows peers to act as lightweight peers, which do not verify blocks and store all blocks. Instead, lightweight peers store the header of blocks without transactions.
 * `NATed` or `non-NATed` peer: This project considers network address translation (NAT). A NATed peer is generally located in a local network and cannot interact directly with peers outside the local network. Instead, non-NATed peers in the local network act as NAT routers or relaying peers between NATed peers and peers outside the local network. Typically, when forwarding external messages to a peer in a local network, a relaying peer must find the destination peer's IP address in the local network based on the NAT translation table. Here, to reduce the complexity, we only simulate the logic of NAT and ignore the NAT translation table; that is, a NATed peer has only one IP address across the network.
+* `localnetworkid`: Denote the ID of the peer's local network.
 
 -----
 
