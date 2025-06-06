@@ -12,6 +12,9 @@ rtt_tracker = {} # {peer_id: transmission latency}
 
 def start_ping_loop(self_id, peer_table):
     from outbox import enqueue_message
+    for pid in peer_table:
+        if pid != self_id:
+            rtt_tracker[pid] = None
     def loop():
        while True:
            msg = {"type": "PING", "sender": self_id, "timestamp": time.time()}
