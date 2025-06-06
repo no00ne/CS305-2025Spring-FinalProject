@@ -23,6 +23,16 @@ message_redundancy = 0
 peer_inbound_timestamps = defaultdict(list)
 
 
+def cleanup_seen_messages():
+    """Periodically remove expired message ids from seen_message_ids."""
+    while True:
+        cutoff = time.time() - SEEN_EXPIRY_SECONDS
+        expired = [mid for mid, ts in list(seen_message_ids.items()) if ts < cutoff]
+        for mid in expired:
+            del seen_message_ids[mid]
+        time.sleep(60)
+
+
 # === Inbound Rate Limiting ===
 INBOUND_RATE_LIMIT = 10
 INBOUND_TIME_WINDOW = 10  # seconds

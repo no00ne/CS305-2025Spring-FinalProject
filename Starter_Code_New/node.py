@@ -66,6 +66,9 @@ def main():
     print(f"[{self_id}] Starting peer monitor", flush=True)
     start_peer_monitor()
 
+    print(f"[{self_id}] Starting seen message cleanup", flush=True)
+    threading.Thread(target=cleanup_seen_messages, daemon=True).start()
+
     # Block and Transaction Generation and Verification
     print(f"[{self_id}] Starting block sync thread", flush=True)
     threading.Thread(target=request_block_sync, args=(self_id,), daemon=True).start()
