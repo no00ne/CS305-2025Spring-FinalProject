@@ -43,6 +43,21 @@ class TransactionMessage:
             amount=data["amount"],
             timestamp=data["timestamp"]
         )
+
+
+def compute_tx_hash(tx_dict):
+    tx_data = {
+        "type": "TX",
+        "from": tx_dict.get("from"),
+        "to": tx_dict.get("to"),
+        "amount": tx_dict.get("amount"),
+        "timestamp": tx_dict.get("timestamp"),
+    }
+    return hashlib.sha256(json.dumps(tx_data, sort_keys=True).encode()).hexdigest()
+
+
+def verify_transaction(tx_dict):
+    return compute_tx_hash(tx_dict) == tx_dict.get("id")
     
 tx_pool = [] # local transaction pool
 tx_ids = set() # the set of IDs of transactions in the local pool
@@ -75,3 +90,4 @@ def clear_pool():
     # Remove all transactions in `tx_pool` and transaction IDs in `tx_ids`.
     tx_pool.clear()
     tx_ids.clear()
+
