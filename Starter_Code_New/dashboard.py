@@ -2,7 +2,12 @@ from flask import Flask, jsonify
 from threading import Thread
 from peer_manager import peer_status, rtt_tracker, blacklist
 from transaction import get_recent_transactions
-from link_simulator import rate_limiter
+# In the original starter code the rate limiter lived in `link_simulator.py`.
+# The module was later removed and its functionality merged into
+# `outbox.py`, but the import here was never updated.  Importing from
+# the non‑existing `link_simulator` causes a runtime error.  Update the
+# import to reference `outbox` where `rate_limiter` is defined.
+from outbox import rate_limiter
 from message_handler import get_redundancy_stats
 from outbox import get_outbox_status
 from peer_discovery import known_peers

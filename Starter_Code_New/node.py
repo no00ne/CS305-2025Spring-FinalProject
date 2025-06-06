@@ -12,7 +12,13 @@ from socket_server import start_socket_server
 from dashboard import start_dashboard
 from peer_manager import start_peer_monitor, start_ping_loop
 from outbox import send_from_queue
-from link_simulator import start_dynamic_capacity_adjustment
+# `start_dynamic_capacity_adjustment` was originally located in
+# `link_simulator.py` in the early starter code, but the helper
+# functions were later moved into `outbox.py`. The import was not
+# updated accordingly which results in a `ModuleNotFoundError` at
+# runtime because `link_simulator` no longer exists.  Import the
+# function from `outbox` instead.
+from outbox import start_dynamic_capacity_adjustment
 from inv_message import broadcast_inventory
 from transaction import transaction_generation
 
