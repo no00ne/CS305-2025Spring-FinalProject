@@ -49,26 +49,29 @@ tx_ids = set() # the set of IDs of transactions in the local pool
     
 def transaction_generation(self_id, interval=15):
     def loop():
-        # TODO: Randomly choose a peer from `known_peers` and generate a transaction to transfer arbitrary amount of money to the peer.
-
-        # TODO:  Add the transaction to local `tx_pool` using the function `add_transaction`.
-
-        # TODO:  Broadcast the transaction to `known_peers` using the function `gossip_message` in `outbox.py`.
-
-        pass
+        while True:
+            peers = [p for p in known_peers.keys() if p != self_id]
+            if not peers:
+                time.sleep(interval)
+                continue
+            target = random.choice(peers)
+            amount = random.randint(1, 100)
+            tx = TransactionMessage(self_id, target, amount)
+            add_transaction(tx.to_dict())
+            gossip_message(self_id, tx.to_dict())
+            time.sleep(interval)
     threading.Thread(target=loop, daemon=True).start()
 
 def add_transaction(tx):
-    # TODO: Add a transaction to the local `tx_pool` if it is in the pool.
-
-    # TODO: Add the transaction ID to `tx_ids`.
-    pass
+    if tx["id"] in tx_ids:
+        return
+    tx_pool.append(tx)
+    tx_ids.add(tx["id"])
 
 def get_recent_transactions():
-    # TODO: Return all transactions in the local `tx_pool`.
-    pass
+    return list(tx_pool)
 
 def clear_pool():
     # Remove all transactions in `tx_pool` and transaction IDs in `tx_ids`.
-
-    pass
+    tx_pool.clear()
+    tx_ids.clear()

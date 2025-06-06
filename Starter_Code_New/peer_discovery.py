@@ -10,27 +10,40 @@ peer_config={}
 def start_peer_discovery(self_id, self_info):
     from outbox import enqueue_message
     def loop():
-        # TODO: Define the JSON format of a `hello` message, which should include: `{message type, sender’s ID, IP address, port, flags, and message ID}`. 
-        # A `sender’s ID` can be `peer_port`. 
-        # The `flags` should indicate whether the peer is `NATed or non-NATed`, and `full or lightweight`. 
-        # The `message ID` can be a random number.
+        hello = {
+            "type": "HELLO",
+            "sender": self_id,
+            "ip": self_info.get("ip"),
+            "port": self_info.get("port"),
+            "flags": peer_flags.get(self_id, {}),
+            "id": generate_message_id(),
+        }
 
-        # TODO: Send a `hello` message to all reachable peers and put the messages into the outbox queue.
-        # Tips: A NATed peer can only say hello to peers in the same local network. 
-        #       If a peer and a NATed peer are not in the same local network, they cannot say hello to each other.
-        pass
+        for peer_id, (ip, port) in known_peers.items():
+            if peer_id == self_id:
+                continue
+            # NAT rules: only peers in the same local network can reach each other
+            if self_info.get("nat") and peer_config.get(peer_id, {}).get("localnetworkid") != self_info.get("localnetworkid"):
+                continue
+            enqueue_message(peer_id, ip, port, hello)
     threading.Thread(target=loop, daemon=True).start()
 
 def handle_hello_message(msg, self_id):
     new_peers = []
-    
-    # TODO: Read information in the received `hello` message.
-     
-    # TODO: If the sender is unknown, add it to the list of known peers (`known_peer`) and record their flags (`peer_flags`).
-     
-    # TODO: Update the set of reachable peers (`reachable_by`).
 
-    pass
+    sender = msg.get("sender")
+    ip = msg.get("ip")
+    port = msg.get("port")
+    flags = msg.get("flags", {})
+
+    if sender not in known_peers:
+        known_peers[sender] = (ip, port)
+        peer_flags[sender] = flags
+        new_peers.append(sender)
+
+    reachable_by.setdefault(sender, set()).add(self_id)
+
+    return new_peers
 
     return new_peers 
 
