@@ -48,25 +48,14 @@ echo ==== 2. Peers / TX pool / Latest block ====
 :: ---------- Peers ----------
 echo [Peers]
 %CURL% -s http://%HOST%:%REST%/peers
-
-powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/peers | Select-Object id,ip,port,status | Format-Table -AutoSize"
-
-
 :: ---------- TX pool ----------
 echo.
 echo [TX Pool (top 10)]
 %CURL% -s http://%HOST%:%REST%/transactions
-
-powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/transactions | Select-Object -First 10 id,from,to,amount | Format-Table -AutoSize"
-
-
 :: ---------- Latest block ----------
 echo.
 echo [Latest Block (header only)]
 %CURL% -s http://%HOST%:%REST%/blocks
-
-powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/blocks | Select-Object -Last 1 block_id,peer,timestamp,@{n='txs';e={$_.transactions.Count}} | Format-Table -AutoSize"
-
 echo.
 
 REM -------- 3. 提交合法交易 --------
@@ -96,21 +85,20 @@ REM -------- 4. Network metrics --------
 echo.
 echo ===== 4. Network metrics =====
 
-powershell -NoProfile -Command "$r=Invoke-RestMethod http://%HOST%:%DASH%/latency; $r.details.GetEnumerator() | Select-Object Name,Value | Format-Table -AutoSize; 'avg_ms=' + $r.avg_ms"
+powershell -NoProfile -Command "\
+  $r=Invoke-RestMethod http://%HOST%:%DASH%/latency;\
+  $r.details.psobject.Properties |\
+    Select-Object Name,Value | Format-Table -AutoSize;\
+  'avg_ms='+$r.avg_ms"
 
 echo ------------------------------
 %CURL% -s http://%HOST%:%DASH%/capacity
 powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%DASH%/capacity | Select-Object capacity | Format-Table -AutoSize"
 
-powershell -NoProfile -Command ^
-  "Invoke-RestMethod http://%HOST%:%DASH%/capacity |" ^
-  "Select-Object capacity |" ^
-  "Format-Table -AutoSize"
-
 REM -------- 5. Blacklist demonstration --------
 echo.
 echo ===== 5. Blacklist demonstration =====
-set "BAD={\"id\":\"dup\",\"from\":\"x\",\"to\":\"y\",\"amount\":-1}"
+set "BAD={\"type\":\"TX\",\"id\":\"dup\",\"from\":\"evil\",\"to\":\"y\",\"amount\":-1}"
 set "TXURL=http://%HOST%:%REST%/transactions/new"
 for /L %%N in (1,1,4) do %CURL% -s -X POST -H "Content-Type: application/json" -d "%BAD%" %TXURL% >nul
 REM 等 3 秒让节点处理
