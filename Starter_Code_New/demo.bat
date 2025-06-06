@@ -9,7 +9,9 @@ set "HOST=localhost"
 set "REST_OFFSET=3000"
 set "DASH_OFFSET=3000"
 set "PEERS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010"
+
 set "BLOCK_SLEEP=21"
+
 
 REM -------- 工具检测 --------
 where curl.exe >nul 2>&1 || (
