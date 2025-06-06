@@ -94,9 +94,16 @@ echo ------------------------------
 %CURL% -s http://%HOST%:%DASH%/capacity
 powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%DASH%/capacity | Select-Object capacity | Format-Table -AutoSize"
 
-REM -------- 5. Blacklist demonstration --------
+REM -------- 5. Orphan / Queue / Redundancy --------
 echo.
-echo ===== 5. Blacklist demonstration =====
+echo ===== 5. Orphan / Queue / Redundancy =====
+%CURL% -s http://%HOST%:%DASH%/orphan
+%CURL% -s http://%HOST%:%DASH%/queue
+%CURL% -s http://%HOST%:%DASH%/redundancy
+
+REM -------- 6. Blacklist demonstration --------
+echo.
+echo ===== 6. Blacklist demonstration =====
 set "BAD={\"type\":\"TX\",\"id\":\"dup\",\"from\":\"evil\",\"to\":\"y\",\"amount\":-1}"
 set "TXURL=http://%HOST%:%REST%/transactions/new"
 for /L %%N in (1,1,4) do %CURL% -s -X POST -H "Content-Type: application/json" -d "%BAD%" %TXURL% >nul
