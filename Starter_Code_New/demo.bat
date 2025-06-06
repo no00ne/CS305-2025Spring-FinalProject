@@ -1,85 +1,112 @@
 @echo off
-REM ==========================================================
-REM  CS305-2025Spring-FinalProject  ——  全流程演示脚本 (CMD)
-REM ==========================================================
-setlocal enabledelayedexpansion
+REM ================== CS305 Demo (UTF-8) ==================
+chcp 65001 >nul
+setlocal EnableDelayedExpansion
 
-REM ---------- 全局配置 ----------
-set HOST=localhost
-set REST_OFFSET=1000          REM peerId+1000 = host REST
-set DASH_OFFSET=3000          REM peerId+3000 = host Dashboard
-set PEER_IDS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010
-set BLOCK_SLEEP=8             REM 区块时间间隔（秒）
+REM -------- 全局配置 --------
+set "HOST=localhost"
 
-REM ---------- 0. docker compose ps ----------
+set "REST_OFFSET=3000"
+set "DASH_OFFSET=3000"
+set "PEERS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010"
+set "BLOCK_SLEEP=8"
+
+REM -------- 工具检测 --------
+where curl.exe >nul 2>&1 || (
+   echo [ERROR] curl.exe 未找到，请检查 PATH
+   exit /b 1
+)
+for %%C in (curl.exe) do set "CURL=%%~$PATH:C"
+
+REM -------- 0. docker compose ps --------
 echo.
-echo ========= docker compose ps =========
+echo ===== docker compose ps =====
 docker compose ps --format "table {{.Service}}\t{{.Publishers}}\t{{.Status}}"
 
-REM ---------- 1. Health check ----------
+REM -------- 1. Health check --------
 echo.
-echo ========= 1. Health check =========
-for %%I in (%PEER_IDS%) do (
+echo ===== 1. Health check =====
+for %%I in (%PEERS%) do (
     set /a DPORT=%%I+%DASH_OFFSET%
-    curl -s -o NUL -w "peer %%I  Dashboard !DPORT!  ->  %%{http_code}\n" ^
-         http://%HOST%:!DPORT!/health
+    for /f %%H in ('^%CURL% -s -o nul -w ^%%{http_code^} "http://%HOST%:!DPORT!/health"') do (
+        echo peer %%I  dashboard !DPORT!  ->  %%H
+    )
 )
 
-REM ---------- 2. Network status（只看第一个节点） ----------
-for %%I in (%PEER_IDS%) do (
-    set FIRST=%%I
-    goto :next
-)
-:next
-set /a REST_PORT=%FIRST%+%REST_OFFSET%
-set /a DASH_PORT=%FIRST%+%DASH_OFFSET%
+REM -------- 2. 网络状态（取第 1 个节点） --------
+for %%I in (%PEERS%) do (set FIRST=%%I & goto :afterLoop)
+:afterLoop
+set /a REST=%FIRST%+%REST_OFFSET%
+set /a DASH=%FIRST%+%DASH_OFFSET%
 
 echo.
-echo ========= 2. Peers / TX pool / Latest block =========
-curl -s http://%HOST%:%DASH_PORT%/peers
-echo ------------------------------
-curl -s http://%HOST%:%DASH_PORT%/transactions
-echo ------------------------------
-curl -s http://%HOST%:%DASH_PORT%/blocks
+echo ==== 2. Peers / TX pool / Latest block ====
 
-REM ---------- 3. 提交合法交易 ----------
+:: ---------- Peers ----------
+echo [Peers]
+powershell -NoProfile -Command ^
+  "Invoke-RestMethod http://%HOST%:%REST%/peers |" ^
+  "Select-Object id,ip,port,status |" ^
+  "Format-Table -AutoSize"
+
+:: ---------- TX pool ----------
 echo.
-echo ========= 3. Submit valid transaction =========
-FOR /F %%G IN ('powershell -NoProfile -Command "[guid]::NewGuid().ToString()"') DO set TXID=%%G
+echo [TX Pool (top 10)]
+powershell -NoProfile -Command ^
+  "Invoke-RestMethod http://%HOST%:%REST%/mempool |" ^
+  "Select-Object -First 10 id,from,to,amount |" ^
+  "Format-Table -AutoSize"
+
+:: ---------- Latest block ----------
+echo.
+echo [Latest Block (header only)]
+powershell -NoProfile -Command ^
+  "Invoke-RestMethod http://%HOST%:%REST%/blocks |" ^
+  "Select-Object -First 1 block_id,peer,timestamp,@{n='txs';e={$_.transactions.Count}} |" ^
+  "Format-Table -AutoSize"
+echo.
+
+REM -------- 3. 提交合法交易 --------
+echo.
+echo ===== 3. Submit valid transaction =====
+for /f %%G in ('powershell -NoProfile -Command "[guid]::NewGuid()"') do set "TXID=%%G"
 echo TXID=%TXID%
 
-curl -s -H "Content-Type: application/json" ^
-     -d "{\"id\":\"%TXID%\",\"from\":\"demo\",\"to\":\"demo\",\"amount\":1}" ^
-     http://%HOST%:%REST_PORT%/transactions/new >NUL
+set "TXJSON={\"id\":\"%TXID%\",\"from\":\"demo\",\"to\":\"demo\",\"amount\":1}"
+%CURL% -s -H "Content-Type: application/json" ^
+       -d "%TXJSON%" ^
+       http://%HOST%:%REST%/transactions/new >nul
 
-echo Wait %BLOCK_SLEEP%s for new block...
-timeout /t %BLOCK_SLEEP% >NUL
+echo 等待 %BLOCK_SLEEP% 秒打包区块…
+powershell -NoProfile -Command "Start-Sleep -Seconds %BLOCK_SLEEP%"
 
-curl -s http://%HOST%:%REST_PORT%/blocks | findstr /I %TXID%
-IF %ERRORLEVEL% EQU 0 (
-    echo [OK] %TXID% on-chain.
-) ELSE (
-    echo [FAIL] %TXID% NOT found.
+for /f "delims=" %%B in ('%CURL% -s http://%HOST%:%REST%/blocks') do (
+    echo %%B | findstr /I /C:"%TXID%" >nul && (
+        echo [OK] %TXID% 已写入最新区块
+        goto :latency
+    )
 )
+echo [FAIL] %TXID% 未在最新区块中找到
 
-REM ---------- 4. Network metrics ----------
+:latency
+REM -------- 4. Network metrics --------
 echo.
-echo ========= 4. Network metrics =========
-curl -s http://%HOST%:%DASH_PORT%/latency
+echo ===== 4. Network metrics =====
+%CURL% -s http://%HOST%:%DASH%/latency
 echo ------------------------------
-curl -s http://%HOST%:%DASH_PORT%/capacity
+%CURL% -s http://%HOST%:%DASH%/capacity
 
-REM ---------- 5. Blacklist demonstration ----------
+REM -------- 5. Blacklist demonstration --------
 echo.
-echo ========= 5. Blacklist demonstration =========
-set BAD_JSON={"id":"dup","from":"x","to":"y","amount":-1}
-curl -s -X POST -H "Content-Type: application/json" -d %BAD_JSON% ^
-     http://%HOST%:%REST_PORT%/transactions/new >NUL
-curl -s -X POST -H "Content-Type: application/json" -d %BAD_JSON% ^
-     http://%HOST%:%REST_PORT%/transactions/new >NUL
-timeout /t 3 >NUL
-curl -s http://%HOST%:%REST_PORT%/blacklist
+echo ===== 5. Blacklist demonstration =====
+set "BAD={\"id\":\"dup\",\"from\":\"x\",\"to\":\"y\",\"amount\":-1}"
+set "TXURL=http://%HOST%:%REST%/transactions/new"
+for /L %%N in (1,1,2) do %CURL% -s -X POST -H "Content-Type: application/json" -d "%BAD%" %TXURL% >nul
+REM 等 3 秒让节点处理
+powershell -NoProfile -Command "Start-Sleep -Seconds 3"
+set "BLURL=http://%HOST%:%REST%/blacklist"
+%CURL% -s %BLURL%
 
 echo.
-echo ========= Demo complete! =========
+echo ===== Demo complete! =====
 endlocal
