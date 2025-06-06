@@ -1,7 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
+
 $HostAddr = "localhost"
 $DashPorts = 8000..8010
+
 
 function Banner($msg) {
     Write-Host "";
@@ -14,6 +16,7 @@ docker compose ps
 Banner "2. Health check"
 foreach ($port in $DashPorts) {
     $url = ('http://{0}:{1}/health' -f $HostAddr, $port)
+
     try {
         $resp = Invoke-WebRequest -Uri $url -UseBasicParsing
         $code = $resp.StatusCode
@@ -24,10 +27,12 @@ foreach ($port in $DashPorts) {
 }
 
 Banner "3. Known peers / tx pool / latest block"
+
 $first = $DashPorts[0]
 Invoke-WebRequest -Uri ('http://{0}:{1}/peers' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
 Invoke-WebRequest -Uri ('http://{0}:{1}/transactions' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
 $latest = Invoke-WebRequest -Uri ('http://{0}:{1}/blocks' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json | Select -Last 1 | ConvertTo-Json -Depth 5
+
 Write-Host $latest
 
 Banner "4. Submit valid transaction"
@@ -42,6 +47,7 @@ Banner "5. Network metrics"
 Invoke-WebRequest -Uri ('http://{0}:{1}/latency' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
 Invoke-WebRequest -Uri ('http://{0}:{1}/capacity' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
 
+
 Banner "6. Blacklist demonstration"
 for ($i=0; $i -lt 4; $i++) {
     $bad = @{ id="bad"; recipient="x"; amount=0 } | ConvertTo-Json
@@ -49,6 +55,7 @@ for ($i=0; $i -lt 4; $i++) {
 }
 Start-Sleep -Seconds 2
 Invoke-WebRequest -Uri ('http://{0}:{1}/blacklist' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
+
 
 Write-Host ""
 Write-Host "Demo complete!" -ForegroundColor Green

@@ -547,6 +547,9 @@ We have provided the `Dockerfile` and `docker-compose.yml` in the starter code w
 2) `localhost:port/{parameter}` to check whether the peers generate and transmit transactions and blocks correctly.
 After the containers are running, execute `./demo.sh` to demonstrate the network. Windows users can run the equivalent PowerShell script `demo.ps1`. The demo performs a health check on each dashboard, prints the initialization logs, submits a sample transaction through `/transactions/new`, waits for the block to be mined, and then queries metrics such as `/latency`, `/capacity`, and `/blacklist` from ports 8000‑8010.
 
+After the containers are running, execute `./demo.sh` to demonstrate the network. Windows users can run the equivalent PowerShell script `demo.ps1`. The demo performs a health check on each dashboard, prints the initialization logs, submits a sample transaction through `/transactions/new`, waits for the block to be mined, and then queries metrics such as `/latency`, `/capacity`, and `/blacklist` from ports 8000‑8010.
+
+
 **Bonus:**
 1) **Dynamic Blockchain Network**: In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify Docker files to allow peers to dynamically join or leave the system without affecting the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all the peers existing in the network.
 
