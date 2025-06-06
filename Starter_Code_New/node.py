@@ -5,7 +5,7 @@ import threading
 import argparse
 import time
 import traceback
-from peer_discovery import start_peer_discovery, known_peers, peer_flags, peer_config
+from peer_discovery import start_peer_discovery, known_peers, peer_flags, peer_config as global_peer_config
 from block_handler import block_generation, request_block_sync
 from message_handler import cleanup_seen_messages
 from socket_server import start_socket_server
@@ -43,10 +43,12 @@ def main():
 
     for peer_id, peer_info in config["peers"].items():
         known_peers[peer_id] = (peer_info["ip"], peer_info["port"])
-        peer_config = config["peers"]
+
+    # Update global peer configuration so other modules can access peer details
+    global_peer_config.update(config["peers"])
 
     if args.fanout:
-        peer_config[self_id]["fanout"] = args.fanout
+        global_peer_config[self_id]["fanout"] = args.fanout
         print(f"[{self_id}] Overriding fanout to {args.fanout}", flush=True)
 
     ip = self_info["ip"]
