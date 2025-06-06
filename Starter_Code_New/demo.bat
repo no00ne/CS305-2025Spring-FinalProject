@@ -48,32 +48,14 @@ echo ==== 2. Peers / TX pool / Latest block ====
 :: ---------- Peers ----------
 echo [Peers]
 %CURL% -s http://%HOST%:%REST%/peers
-
-powershell -NoProfile -Command "\
-  $p=Invoke-RestMethod http://%HOST%:%REST%/peers;\
-  $p | Format-Table -Property id,ip,port,status -AutoSize"
-
-
 :: ---------- TX pool ----------
 echo.
 echo [TX Pool (top 10)]
 %CURL% -s http://%HOST%:%REST%/transactions
-
-powershell -NoProfile -Command "\
-  $t=Invoke-RestMethod http://%HOST%:%REST%/transactions;\
-  $t | Select-Object -First 10 id,from,to,amount | Format-Table -AutoSize"
-
-
 :: ---------- Latest block ----------
 echo.
 echo [Latest Block (header only)]
 %CURL% -s http://%HOST%:%REST%/blocks
-
-powershell -NoProfile -Command "\
-  $b=Invoke-RestMethod http://%HOST%:%REST%/blocks;\
-  $b | Select-Object -Last 1 block_id,peer,timestamp,\
-    @{n='txs';e={$_.transactions.Count}} | Format-Table -AutoSize"
-
 echo.
 
 REM -------- 3. 提交合法交易 --------

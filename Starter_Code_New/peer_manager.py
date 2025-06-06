@@ -15,6 +15,7 @@ def start_ping_loop(self_id, peer_table):
     for pid in peer_table:
         if pid != self_id:
             rtt_tracker[pid] = None
+            peer_status.setdefault(pid, 'UNKNOWN')
     def loop():
        while True:
            msg = {"type": "PING", "sender": self_id, "timestamp": time.time()}
