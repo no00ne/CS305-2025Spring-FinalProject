@@ -82,6 +82,8 @@ def dispatch_message(msg, self_id, self_ip):
         handle_block(msg, self_id)
         inv = create_inv(self_id, [block_id])
 
+        gossip_message(self_id, inv)
+
 
 
     elif msg_type == "TX":
@@ -93,6 +95,10 @@ def dispatch_message(msg, self_id, self_ip):
             redundant_txs += 1
             return
         seen_txs.add(msg.get("id"))
+
+        add_transaction(msg)
+        gossip_message(self_id, msg)
+
 
     elif msg_type == "PING":
         update_peer_heartbeat(sender)
@@ -144,7 +150,6 @@ def dispatch_message(msg, self_id, self_ip):
 
     else:
         print(f"[{self_id}] Unknown message type: {msg_type}", flush=True)
-
 
 
 def cleanup_seen_messages():
