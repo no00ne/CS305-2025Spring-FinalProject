@@ -545,6 +545,7 @@ This project will deploy the blockchain P2P network based on Docker technology, 
 We have provided the `Dockerfile` and `docker-compose.yml` in the starter code with ten peers. With these two files, we will use the following commands to check your project:
 1) `docker compose up --build` to check if each peer runs correctly.
 2) `localhost:port/{parameter}` to check whether the peers generate and transmit transactions and blocks correctly.
+After the containers are running, execute `./demo.sh` to demonstrate the network. Windows users can run the equivalent PowerShell script `demo.ps1`. The demo performs a health check on each dashboard, prints the initialization logs, submits a sample transaction through `/transactions/new`, waits for the block to be mined, and then queries metrics such as `/latency`, `/capacity`, and `/blacklist` from ports 8000‑8010.
 
 After the containers are running, execute `./demo.sh` to demonstrate the network. Windows users can run the equivalent PowerShell script `demo.ps1`. The demo performs a health check on each dashboard, prints the initialization logs, submits a sample transaction through `/transactions/new`, waits for the block to be mined, and then queries metrics such as `/latency`, `/capacity`, and `/blacklist` from ports 8000‑8010.
 
