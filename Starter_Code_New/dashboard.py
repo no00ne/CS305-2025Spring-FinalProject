@@ -1,9 +1,10 @@
 from flask import Flask, jsonify
 from threading import Thread
-from peer_manager import peer_status, rtt_tracker
+from peer_manager import peer_status, rtt_tracker, blacklist
 from transaction import get_recent_transactions
 from link_simulator import rate_limiter
 from message_handler import get_redundancy_stats
+from outbox import get_outbox_status
 from peer_discovery import known_peers
 import json
 from block_handler import received_blocks
@@ -26,47 +27,43 @@ def home():
 
 @app.route('/blocks')
 def blocks():
-    # TODO: display the blocks in the local blockchain.
-    pass
+    return jsonify(blockchain_data_ref)
 
 @app.route('/peers')
 def peers():
-    # TODO: display the information of known peers, including `{peer's ID, IP address, port, status, NATed or non-NATed, lightweight or full}`.
-    pass
+    data = []
+    for pid, (ip, port) in known_peers_ref.items():
+        status = peer_status.get(pid, 'UNKNOWN')
+        data.append({"id": pid, "ip": ip, "port": port, "status": status})
+    return jsonify(data)
 
 @app.route('/transactions')
 def transactions():
-    # TODO: display the transactions in the local pool `tx_pool`.
-    pass
+    return jsonify(get_recent_transactions())
 
 @app.route('/latency')
 def latency():
-    # TODO: display the transmission latency between peers.
-    pass
+    return jsonify(rtt_tracker)
 
 @app.route('/capacity')
 def capacity():
-    # TODO: display the sending capacity of the peer.
-    pass
+    return jsonify({"capacity": rate_limiter.capacity})
 
 @app.route('/orphans')
 def orphan_blocks():
-    # TODO: display the orphaned blocks.
-    pass
+    from block_handler import orphan_blocks
+    return jsonify(orphan_blocks)
 
 @app.route('/queue')
 def message_queue():
-    # TODO: display the messages in the outbox queue.
-    pass
+    return jsonify(get_outbox_status())
 
 @app.route('/redundancy')
 def redundancy_stats():
-    # TODO: display the number of redundant messages received.
-    pass
+    return jsonify({"redundant": get_redundancy_stats()})
 
 @app.route('/blacklist')
 def blacklist_display():
-    # TODO: display the blacklist.
-    pass
+    return jsonify(list(blacklist))
 
 
