@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 # ===== CS305-2025Spring-FinalProject Demo =====
 set -euo pipefail
@@ -52,4 +53,5 @@ sleep 2
 curl -s "http://${HOST}:${first}/blacklist" | (jq_exists && jq '.' || cat)
 
 echo -e "\n\033[1;32mDemo complete!\033[0m"
+
 
