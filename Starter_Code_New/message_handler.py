@@ -4,7 +4,7 @@ import time
 import hashlib
 import random
 from collections import defaultdict
-from peer_discovery import handle_hello_message, known_peers, peer_config
+from peer_discovery import handle_hello_message, known_peers, peer_config, peer_flags
 from block_handler import handle_block, get_block_by_id, create_getblock, received_blocks, header_store
 from inv_message import  create_inv, get_inventory
 from block_handler import create_getblock
@@ -125,9 +125,25 @@ def dispatch_message(msg, self_id, self_ip):
         ids = msg.get("blocks", [])
         for bid in ids:
             blk = get_block_by_id(bid)
-            if blk:
-                ip, port = known_peers.get(sender, (None, None))
-                if ip:
+            attempts = 0
+            while not blk and attempts < 3:
+                req = create_getblock(self_id, [bid])
+                for pid, (ip, port) in known_peers.items():
+                    if pid in {self_id, sender}:
+                        continue
+                    enqueue_message(pid, ip, port, req)
+                attempts += 1
+                time.sleep(1)
+                blk = get_block_by_id(bid)
+            if not blk:
+                continue
+            ip, port = known_peers.get(sender, (None, None))
+            if ip:
+                if peer_flags.get(sender, {}).get("light"):
+                    header = {"block_id": blk["block_id"], "prev_id": blk["prev_id"], "timestamp": blk["timestamp"]}
+                    resp = {"type": "BLOCK_HEADERS", "sender": self_id, "headers": [header]}
+                    enqueue_message(sender, ip, port, resp)
+                else:
                     enqueue_message(sender, ip, port, blk)
 
     elif msg_type == "GET_BLOCK_HEADERS":
@@ -138,14 +154,27 @@ def dispatch_message(msg, self_id, self_ip):
             enqueue_message(sender, ip, port, resp)
 
     elif msg_type == "BLOCK_HEADERS":
-        known_ids = {h["block_id"] for h in header_store}
         incoming = msg.get("headers", [])
-        new_headers = []
+        local_ids = {b["block_id"] for b in received_blocks}
+        known = {h["block_id"] for h in header_store} | local_ids
+        valid = []
         for h in incoming:
-            if h["prev_id"] is None or h["prev_id"] in known_ids:
-                if h["block_id"] not in known_ids:
-                    new_headers.append(h)
-        header_store.extend(new_headers)
+            prev = h.get("prev_id")
+            if prev is not None and prev not in known:
+                return
+            valid.append(h)
+            known.add(h["block_id"])
+        existing = {h["block_id"] for h in header_store}
+        for h in valid:
+            if h["block_id"] not in existing:
+                header_store.append(h)
+        if not peer_flags.get(self_id, {}).get("light"):
+            missing = [h["block_id"] for h in valid if get_block_by_id(h["block_id"]) is None]
+            if missing:
+                req = create_getblock(self_id, missing)
+                ip, port = known_peers.get(sender, (None, None))
+                if ip:
+                    enqueue_message(sender, ip, port, req)
 
 
     else:

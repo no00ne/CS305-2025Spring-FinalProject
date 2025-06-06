@@ -4,7 +4,7 @@ import hashlib
 import json
 import threading
 from transaction import get_recent_transactions, clear_pool
-from peer_discovery import known_peers, peer_config
+from peer_discovery import known_peers, peer_config, peer_flags
 
 from outbox import  enqueue_message, gossip_message
 from utils import generate_message_id
@@ -53,8 +53,7 @@ def create_dummy_block(peer_id, MALICIOUS_MODE):
         block_id = compute_block_hash(block)
     block["block_id"] = block_id
     clear_pool()
-    received_blocks.append(block)
-    header_store.append({"block_id": block_id, "prev_id": prev_id, "timestamp": block["timestamp"]})
+    receive_block(block)
     return block
 
 def compute_block_hash(block):
@@ -62,30 +61,32 @@ def compute_block_hash(block):
     temp.pop("block_id", None)
     return hashlib.sha256(json.dumps(temp, sort_keys=True).encode()).hexdigest()
 
-def handle_block(msg, self_id):
-    # TODO: Check the correctness of `block ID` in the received block. If incorrect, drop the block and record the sender's offence.
-
-    # TODO: Check if the block exists in the local blockchain. If yes, drop the block.
-
-    # TODO: Check if the previous block of the block exists in the local blockchain. If not, add the block to the list of orphaned blocks (`orphan_blocks`). If yes, add the block to the local blockchain.
-
-    # TODO: Check if the block is the previous block of blocks in `orphan_blocks`. If yes, add the orphaned blocks to the local blockchain.
-    block_id = msg.get("block_id")
-    if compute_block_hash(msg) != block_id:
-        record_offense(msg.get("peer"))
-        return
+def receive_block(block, light=False):
+    block_id = block.get("block_id")
+    if compute_block_hash(block) != block_id:
+        record_offense(block.get("peer"))
+        return False
     if any(b["block_id"] == block_id for b in received_blocks):
-        return
-    prev = msg.get("prev_id")
+        return False
+    prev = block.get("prev_id")
     if prev and not any(b["block_id"] == prev for b in received_blocks):
-        orphan_blocks[block_id] = msg
-        return
-    received_blocks.append(msg)
-    header_store.append({"block_id": block_id, "prev_id": prev, "timestamp": msg["timestamp"]})
-    # Attach any orphans
-    orphans_to_attach = [oid for oid, ob in orphan_blocks.items() if ob.get("prev_id") == block_id]
-    for oid in orphans_to_attach:
-        received_blocks.append(orphan_blocks.pop(oid))
+        orphan_blocks[block_id] = block
+        return False
+    if not light:
+        received_blocks.append(block)
+    header_store.append({"block_id": block_id, "prev_id": prev, "timestamp": block["timestamp"]})
+    to_attach = [oid for oid, ob in list(orphan_blocks.items()) if ob.get("prev_id") == block_id]
+    for oid in to_attach:
+        ob = orphan_blocks.pop(oid)
+        if not light:
+            received_blocks.append(ob)
+        header_store.append({"block_id": oid, "prev_id": ob.get("prev_id"), "timestamp": ob["timestamp"]})
+    return True
+
+def handle_block(msg, self_id):
+    """Validate and store a received block."""
+    light = peer_flags.get(self_id, {}).get("light", False)
+    receive_block(msg, light)
 
 
 def create_getblock(sender_id, requested_ids):
