@@ -9,7 +9,9 @@ set "HOST=localhost"
 set "REST_OFFSET=3000"
 set "DASH_OFFSET=3000"
 set "PEERS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010"
+
 set "BLOCK_SLEEP=21"
+
 
 REM -------- 工具检测 --------
 where curl.exe >nul 2>&1 || (
@@ -46,19 +48,25 @@ echo ==== 2. Peers / TX pool / Latest block ====
 :: ---------- Peers ----------
 echo [Peers]
 %CURL% -s http://%HOST%:%REST%/peers
+
 powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/peers | Select-Object id,ip,port,status | Format-Table -AutoSize"
+
 
 :: ---------- TX pool ----------
 echo.
 echo [TX Pool (top 10)]
 %CURL% -s http://%HOST%:%REST%/transactions
+
 powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/transactions | Select-Object -First 10 id,from,to,amount | Format-Table -AutoSize"
+
 
 :: ---------- Latest block ----------
 echo.
 echo [Latest Block (header only)]
 %CURL% -s http://%HOST%:%REST%/blocks
+
 powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/blocks | Select-Object -Last 1 block_id,peer,timestamp,@{n='txs';e={$_.transactions.Count}} | Format-Table -AutoSize"
+
 echo.
 
 REM -------- 3. 提交合法交易 --------
@@ -87,10 +95,17 @@ echo [FAIL] %TXID% 未在最新区块中找到
 REM -------- 4. Network metrics --------
 echo.
 echo ===== 4. Network metrics =====
+
 powershell -NoProfile -Command "$r=Invoke-RestMethod http://%HOST%:%DASH%/latency; $r.details.GetEnumerator() | Select-Object Name,Value | Format-Table -AutoSize; 'avg_ms=' + $r.avg_ms"
+
 echo ------------------------------
 %CURL% -s http://%HOST%:%DASH%/capacity
 powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%DASH%/capacity | Select-Object capacity | Format-Table -AutoSize"
+
+powershell -NoProfile -Command ^
+  "Invoke-RestMethod http://%HOST%:%DASH%/capacity |" ^
+  "Select-Object capacity |" ^
+  "Format-Table -AutoSize"
 
 REM -------- 5. Blacklist demonstration --------
 echo.
