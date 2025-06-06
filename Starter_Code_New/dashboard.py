@@ -5,7 +5,7 @@ from transaction import get_recent_transactions, TransactionMessage, add_transac
 from link_simulator import rate_limiter
 from message_handler import get_redundancy_stats
 from outbox import get_outbox_status, gossip_message
-from peer_discovery import known_peers
+from peer_discovery import known_peers, peer_flags
 import json
 from block_handler import received_blocks
 
@@ -40,7 +40,15 @@ def peers():
     data = []
     for pid, (ip, port) in known_peers_ref.items():
         status = peer_status.get(pid, 'UNKNOWN')
-        data.append({"id": pid, "ip": ip, "port": port, "status": status})
+        flags = peer_flags.get(pid, {})
+        data.append({
+            "id": pid,
+            "ip": ip,
+            "port": port,
+            "status": status,
+            "nat": flags.get("nat", False),
+            "light": flags.get("light", False)
+        })
     return jsonify(data)
 
 @app.route('/transactions')
@@ -73,7 +81,7 @@ def latency():
 def capacity():
     return jsonify({"capacity": rate_limiter.capacity})
 
-@app.route('/orphans')
+@app.route('/orphan')
 def orphan_blocks():
     from block_handler import orphan_blocks
     return jsonify(orphan_blocks)
