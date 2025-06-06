@@ -48,14 +48,17 @@ echo ==== 2. Peers / TX pool / Latest block ====
 :: ---------- Peers ----------
 echo [Peers]
 %CURL% -s http://%HOST%:%REST%/peers
+
 :: ---------- TX pool ----------
 echo.
 echo [TX Pool (top 10)]
 %CURL% -s http://%HOST%:%REST%/transactions
+
 :: ---------- Latest block ----------
 echo.
 echo [Latest Block (header only)]
 %CURL% -s http://%HOST%:%REST%/blocks
+
 echo.
 
 REM -------- 3. 提交合法交易 --------

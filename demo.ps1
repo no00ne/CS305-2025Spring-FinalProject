@@ -30,12 +30,7 @@ Banner "3. Known peers / tx pool / latest block"
 
 $first = $DashPorts[0]
 Invoke-WebRequest -Uri ('http://{0}:{1}/peers' -f $HostAddr, $first) -UseBasicParsing |
-  Select-Object -ExpandProperty Content
-Invoke-WebRequest -Uri ('http://{0}:{1}/transactions' -f $HostAddr, $first) -UseBasicParsing |
-  Select-Object -ExpandProperty Content
-$latest = Invoke-WebRequest -Uri ('http://{0}:{1}/blocks' -f $HostAddr, $first) -UseBasicParsing |
-  Select-Object -ExpandProperty Content | ConvertFrom-Json | Select -Last 1 | ConvertTo-Json -Depth 5
-Write-Host $latest
+
 
 Banner "4. Submit valid transaction"
 $body = @{ recipient="5001"; amount=42 } | ConvertTo-Json
