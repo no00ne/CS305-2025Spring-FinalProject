@@ -73,7 +73,7 @@ def latency():
 
     valid = [(pid, lat) for pid, lat in rtt_tracker.items() if lat is not None]
     data = {str(pid): round(lat * 1000, 2) for pid, lat in valid}
-    avg = round(sum(lat for _, lat in valid) / len(valid) * 1000, 2) if valid else None
+    avg = round(sum(lat for _, lat in valid) / len(valid) * 1000, 2) if valid else 0.0
 
     return jsonify({"avg_ms": avg, "details": data})
 
@@ -84,11 +84,16 @@ def capacity():
 @app.route('/orphan')
 def orphan_blocks():
     from block_handler import orphan_blocks
+    if not orphan_blocks:
+        return jsonify({"count": 0, "blocks": {}})
     return jsonify(orphan_blocks)
 
 @app.route('/queue')
 def message_queue():
-    return jsonify(get_outbox_status())
+    status = get_outbox_status()
+    if not status:
+        return jsonify({"count": 0})
+    return jsonify(status)
 
 @app.route('/redundancy')
 def redundancy_stats():
