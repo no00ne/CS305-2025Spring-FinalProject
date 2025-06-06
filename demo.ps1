@@ -29,10 +29,12 @@ foreach ($port in $DashPorts) {
 Banner "3. Known peers / tx pool / latest block"
 
 $first = $DashPorts[0]
-Invoke-WebRequest -Uri ('http://{0}:{1}/peers' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
-Invoke-WebRequest -Uri ('http://{0}:{1}/transactions' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
-$latest = Invoke-WebRequest -Uri ('http://{0}:{1}/blocks' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json | Select -Last 1 | ConvertTo-Json -Depth 5
-
+Invoke-WebRequest -Uri ('http://{0}:{1}/peers' -f $HostAddr, $first) -UseBasicParsing |
+  Select-Object -ExpandProperty Content
+Invoke-WebRequest -Uri ('http://{0}:{1}/transactions' -f $HostAddr, $first) -UseBasicParsing |
+  Select-Object -ExpandProperty Content
+$latest = Invoke-WebRequest -Uri ('http://{0}:{1}/blocks' -f $HostAddr, $first) -UseBasicParsing |
+  Select-Object -ExpandProperty Content | ConvertFrom-Json | Select -Last 1 | ConvertTo-Json -Depth 5
 Write-Host $latest
 
 Banner "4. Submit valid transaction"
@@ -44,13 +46,16 @@ $blocks = Invoke-WebRequest -Uri ('http://{0}:{1}/blocks' -f $HostAddr, $first) 
 if ($blocks -like "*$txid*") { Write-Host "✅ transaction on chain" }
 
 Banner "5. Network metrics"
-Invoke-WebRequest -Uri ('http://{0}:{1}/latency' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
-Invoke-WebRequest -Uri ('http://{0}:{1}/capacity' -f $HostAddr, $first) -UseBasicParsing | Select-Object -ExpandProperty Content
+$r = Invoke-RestMethod -Uri ('http://{0}:{1}/latency' -f $HostAddr, $first)
+$r.details.psobject.Properties | Select-Object Name,Value | Format-Table -AutoSize
+Write-Host ("avg_ms=" + $r.avg_ms)
+Invoke-RestMethod -Uri ('http://{0}:{1}/capacity' -f $HostAddr, $first) |
+  Select-Object capacity | Format-Table -AutoSize
 
 
 Banner "6. Blacklist demonstration"
 for ($i=0; $i -lt 4; $i++) {
-    $bad = @{ id="bad"; recipient="x"; amount=0 } | ConvertTo-Json
+    $bad = @{ type="TX"; id="bad"; from="evil"; to="x"; amount=0 } | ConvertTo-Json
     Invoke-WebRequest -Uri ('http://{0}:{1}/transactions/new' -f $HostAddr, $first) -Method Post -Body $bad -ContentType 'application/json' -UseBasicParsing | Out-Null
 }
 Start-Sleep -Seconds 2
