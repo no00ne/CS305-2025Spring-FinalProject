@@ -21,7 +21,7 @@ def request_block_sync(self_id):
             continue
         enqueue_message(peer_id, ip, port, msg)
 
-def block_generation(self_id, MALICIOUS_MODE, interval=20):
+def block_generation(self_id, MALICIOUS_MODE, interval=10):
     from inv_message import create_inv
     def mine():
         while True:

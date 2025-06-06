@@ -9,12 +9,15 @@ set "HOST=localhost"
 set "REST_OFFSET=3000"
 set "DASH_OFFSET=3000"
 set "PEERS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010"
-
-set "BLOCK_SLEEP=21"
-
-
-REM -------- 工具检测 --------
-where curl.exe >nul 2>&1 || (
+set "BLOCK_SLEEP=11"
+%CURL% -s http://%HOST%:%REST%/peers
+%CURL% -s http://%HOST%:%REST%/transactions
+%CURL% -s http://%HOST%:%REST%/blocks
+  "$r=Invoke-RestMethod http://%HOST%:%DASH%/latency;" ^
+  "$r.details.GetEnumerator() | Select-Object Name,Value | Format-Table -AutoSize;" ^
+  "avg_ms=" + $r.avg_ms
+%CURL% -s http://%HOST%:%DASH%/capacity
+for /L %%N in (1,1,4) do %CURL% -s -X POST -H "Content-Type: application/json" -d "%BAD%" %TXURL% >nul
    echo [ERROR] curl.exe 未找到，请检查 PATH
    exit /b 1
 )

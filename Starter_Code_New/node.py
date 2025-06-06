@@ -78,7 +78,7 @@ def main():
     if not self_info.get('light', False):
         print(f"[{self_id}] Starting transaction and block generation", flush=True)
         transaction_generation(self_id)
-        block_generation(self_id, MALICIOUS_MODE)
+        block_generation(self_id, MALICIOUS_MODE, 10)
 
     print(f"[{self_id}] Starting broadcast inventory thread", flush=True)
     threading.Thread(target=broadcast_inventory, args=(self_id,), daemon=True).start()
