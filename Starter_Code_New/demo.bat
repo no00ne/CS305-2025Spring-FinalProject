@@ -9,28 +9,14 @@ set "HOST=localhost"
 set "REST_OFFSET=3000"
 set "DASH_OFFSET=3000"
 set "PEERS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010"
-
-set "BLOCK_SLEEP=11"
-
-
-REM -------- 工具检测 --------
-where curl.exe >nul 2>&1 || (
-   echo [ERROR] curl.exe 未找到，请检查 PATH
-   exit /b 1
-)
-for %%C in (curl.exe) do set "CURL=%%~$PATH:C"
-
-REM -------- 0. docker compose ps --------
-echo.
-echo ===== docker compose ps =====
-docker compose ps --format "table {{.Service}}\t{{.Publishers}}\t{{.Status}}"
-
-REM -------- 1. Health check --------
-echo.
-echo ===== 1. Health check =====
-for %%I in (%PEERS%) do (
-    set /a DPORT=%%I+%DASH_OFFSET%
-    for /f %%H in ('^%CURL% -s -o nul -w ^%%{http_code^} "http://%HOST%:!DPORT!/health"') do (
+set "BLOCK_SLEEP=21"
+set /a DASH2=%FIRST%+1+%DASH_OFFSET%
+powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/peers | Select-Object id,ip,port,status | Format-Table -AutoSize"
+powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/transactions | Select-Object -First 10 id,from,to,amount | Format-Table -AutoSize"
+powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%REST%/blocks | Select-Object -Last 1 block_id,peer,timestamp,@{n='txs';e={$_.transactions.Count}} | Format-Table -AutoSize"
+powershell -NoProfile -Command "$r=Invoke-RestMethod http://%HOST%:%DASH%/latency; $r.details.GetEnumerator() | Select-Object Name,Value | Format-Table -AutoSize; 'avg_ms=' + $r.avg_ms"
+powershell -NoProfile -Command "Invoke-RestMethod http://%HOST%:%DASH%/capacity | Select-Object capacity | Format-Table -AutoSize"
+set "BLURL=http://%HOST%:%DASH2%/blacklist"
         echo peer %%I  dashboard !DPORT!  ->  %%H
     )
 )
