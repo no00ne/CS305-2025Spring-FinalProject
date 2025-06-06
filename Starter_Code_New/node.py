@@ -6,7 +6,7 @@ import argparse
 import time
 import traceback
 from peer_discovery import start_peer_discovery, known_peers, peer_flags, peer_config as global_peer_config
-from block_handler import block_generation, request_block_sync
+from block_handler import block_generation, request_block_sync, init_genesis_block
 from message_handler import cleanup_seen_messages
 from socket_server import start_socket_server
 from dashboard import start_dashboard
@@ -72,6 +72,9 @@ def main():
             cleanup_seen_messages()
             time.sleep(30)
     threading.Thread(target=cleanup_loop, daemon=True).start()
+
+    # Initialize blockchain with genesis block
+    init_genesis_block()
 
     # Block and Transaction Generation and Verification
     print(f"[{self_id}] Starting block sync thread", flush=True)

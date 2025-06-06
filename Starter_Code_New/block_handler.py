@@ -14,6 +14,21 @@ received_blocks = [] # The local blockchain. The blocks are added linearly at th
 header_store = [] # The header of blocks in the local blockchain. Used by lightweight peers.
 orphan_blocks = {} # The block whose previous block is not in the local blockchain. Waiting for the previous block.
 
+def init_genesis_block():
+    """Create the genesis block and populate local stores."""
+    block = {
+        "type": "BLOCK",
+        "peer": "GENESIS",
+        "timestamp": time.time(),
+        "prev_id": None,
+        "transactions": [],
+    }
+    block_id = compute_block_hash(block)
+    block["block_id"] = block_id
+    received_blocks.append(block)
+    header_store.append({"block_id": block_id, "prev_id": None, "timestamp": block["timestamp"]})
+
+
 def request_block_sync(self_id):
     msg = {"type": "GET_BLOCK_HEADERS", "sender": self_id}
     for peer_id, (ip, port) in known_peers.items():
