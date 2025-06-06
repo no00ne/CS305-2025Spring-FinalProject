@@ -62,8 +62,11 @@ def new_transaction():
 
 @app.route('/latency')
 def latency():
-    data = {str(pid): round(lat * 1000, 2) for pid, lat in rtt_tracker.items()}
-    avg = round(sum(rtt_tracker.values()) / len(rtt_tracker) * 1000, 2) if rtt_tracker else None
+
+    valid = [(pid, lat) for pid, lat in rtt_tracker.items() if lat is not None]
+    data = {str(pid): round(lat * 1000, 2) for pid, lat in valid}
+    avg = round(sum(lat for _, lat in valid) / len(valid) * 1000, 2) if valid else None
+
     return jsonify({"avg_ms": avg, "details": data})
 
 @app.route('/capacity')
