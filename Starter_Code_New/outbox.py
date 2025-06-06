@@ -151,15 +151,17 @@ def get_relay_peer(self_id, dst_id):
     from peer_discovery import known_peers, reachable_by
     candidates = reachable_by.get(dst_id, set())
     best_peer = None
-    best_latency = None
+    best_latency = float('inf')
     for pid in candidates:
         if pid == self_id or pid not in known_peers:
             continue
-        lat = rtt_tracker.get(pid, float('inf'))
-        if best_peer is None or lat < best_latency:
+        lat = rtt_tracker.get(pid)
+        if lat is None:
+            continue
+        if lat < best_latency:
             best_peer = pid
             best_latency = lat
-    if best_peer:
+    if best_peer is not None:
         ip, port = known_peers[best_peer]
         return best_peer, ip, port
     return None
