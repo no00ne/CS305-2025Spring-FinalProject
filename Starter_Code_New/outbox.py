@@ -155,6 +155,7 @@ def get_relay_peer(self_id, dst_id):
     for pid in candidates:
         if pid == self_id or pid not in known_peers:
             continue
+
         lat = rtt_tracker.get(pid)
         if lat is None:
             continue
@@ -162,6 +163,7 @@ def get_relay_peer(self_id, dst_id):
             best_peer = pid
             best_latency = lat
     if best_peer is not None:
+
         ip, port = known_peers[best_peer]
         return best_peer, ip, port
     return None
