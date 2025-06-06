@@ -10,7 +10,7 @@ set "REST_OFFSET=3000"
 set "DASH_OFFSET=3000"
 set "PEERS=5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010"
 
-set "BLOCK_SLEEP=11"
+set "BLOCK_SLEEP=15"
 
 
 REM -------- 工具检测 --------
@@ -88,11 +88,7 @@ REM -------- 4. Network metrics --------
 echo.
 echo ===== 4. Network metrics =====
 
-powershell -NoProfile -Command "\
-  $r=Invoke-RestMethod http://%HOST%:%DASH%/latency;\
-  $r.details.psobject.Properties |\
-    Select-Object Name,Value | Format-Table -AutoSize;\
-  'avg_ms='+$r.avg_ms"
+powershell -NoProfile -Command "$r=Invoke-RestMethod http://%HOST%:%DASH%/latency;$r.details.psobject.Properties | Select-Object Name,Value | Format-Table -AutoSize; 'avg_ms='+$r.avg_ms"
 
 echo ------------------------------
 %CURL% -s http://%HOST%:%DASH%/capacity
