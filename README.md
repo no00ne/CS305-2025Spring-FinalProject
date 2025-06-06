@@ -545,7 +545,7 @@ This project will deploy the blockchain P2P network based on Docker technology, 
 We have provided the `Dockerfile` and `docker-compose.yml` in the starter code with ten peers. With these two files, we will use the following commands to check your project:
 1) `docker compose up --build` to check if each peer runs correctly.
 2) `localhost:port/{parameter}` to check whether the peers generate and transmit transactions and blocks correctly.
-After the containers are running, execute `./demo.sh` to automatically query each dashboard. The script loops over ports 8000-8010 and prints the responses from `/`, `/peers`, `/blocks`, `/transactions`, `/latency`, `/capacity`, `/orphans`, `/queue`, `/redundancy`, and `/blacklist`.
+After the containers are running, execute `./demo.sh` to demonstrate the network. The script shows the initialization logs of every peer and then loops over ports 8000-8010 to fetch the responses from `/`, `/peers`, `/blocks`, `/transactions`, `/latency`, `/capacity`, `/orphans`, `/queue`, `/redundancy`, and `/blacklist`.
 
 **Bonus:**
 1) **Dynamic Blockchain Network**: In the above test method, the number of peers in the blockchain P2P network is fixed. You may add additional functions to your project and modify Docker files to allow peers to dynamically join or leave the system without affecting the operation of other peers. Use different `config.json` for different new peers, so that newly-joined peers may not know all the peers existing in the network.
