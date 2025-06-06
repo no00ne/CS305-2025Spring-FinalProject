@@ -173,8 +173,6 @@ def send_message(ip, port, message):
     except Exception:
         return False
 
-send_message = apply_network_conditions(send_message)
-
 def apply_network_conditions(send_func):
     def wrapper(ip, port, message):
         mtype = message.get("type", "OTHER")
@@ -188,6 +186,8 @@ def apply_network_conditions(send_func):
         return send_func(ip, port, message)
     return wrapper
 
+send_message = apply_network_conditions(send_message)
+
 def start_dynamic_capacity_adjustment():
     def adjust_loop():
         while True:
@@ -200,7 +200,7 @@ def start_dynamic_capacity_adjustment():
 
 def gossip_message(self_id, message, fanout=3):
 
-    from peer_discovery import known_peers, peer_config
+    from peer_discovery import known_peers, peer_config, peer_flags
 
     fanout = peer_config.get(self_id, {}).get("fanout", fanout)
     peers = list(known_peers.keys())
