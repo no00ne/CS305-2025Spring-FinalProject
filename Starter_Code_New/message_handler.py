@@ -73,6 +73,7 @@ def dispatch_message(msg, self_id, self_ip):
         handle_hello_message(msg, self_id)
 
     elif msg_type == "BLOCK":
+
         block_id = msg.get("block_id")
         if any(b["block_id"] == block_id for b in received_blocks):
             global redundant_blocks
@@ -80,7 +81,9 @@ def dispatch_message(msg, self_id, self_ip):
             return
         handle_block(msg, self_id)
         inv = create_inv(self_id, [block_id])
+
         gossip_message(self_id, inv)
+
 
 
     elif msg_type == "TX":
@@ -92,8 +95,10 @@ def dispatch_message(msg, self_id, self_ip):
             redundant_txs += 1
             return
         seen_txs.add(msg.get("id"))
+
         add_transaction(msg)
         gossip_message(self_id, msg)
+
 
     elif msg_type == "PING":
         update_peer_heartbeat(sender)
@@ -152,3 +157,4 @@ def cleanup_seen_messages():
     expired = [msg_id for msg_id, ts in list(seen_message_ids.items()) if now - ts > SEEN_EXPIRY_SECONDS]
     for msg_id in expired:
         del seen_message_ids[msg_id]
+
