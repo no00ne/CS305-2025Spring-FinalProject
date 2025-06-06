@@ -15,21 +15,20 @@ header_store = [] # The header of blocks in the local blockchain. Used by lightw
 orphan_blocks = {} # The block whose previous block is not in the local blockchain. Waiting for the previous block.
 
 def request_block_sync(self_id):
-    # TODO: Define the JSON format of a `GET_BLOCK_HEADERS`, which should include `{message type, sender's ID}`.
-
-    # TODO: Send a `GET_BLOCK_HEADERS` message to each known peer and put the messages in the outbox queue.
-    pass
+    msg = {"type": "GET_BLOCK_HEADERS", "sender": self_id}
+    for peer_id, (ip, port) in known_peers.items():
+        if peer_id == self_id:
+            continue
+        enqueue_message(peer_id, ip, port, msg)
 
 def block_generation(self_id, MALICIOUS_MODE, interval=20):
     from inv_message import create_inv
     def mine():
-
-    # TODO: Create a new block periodically using the function `create_dummy_block`.
-
-    # TODO: Create an `INV` message for the new block using the function `create_inv` in `inv_message.py`.
-
-    # TODO: Broadcast the `INV` message to known peers using the function `gossip` in `outbox.py`.
-        pass
+        while True:
+            block = create_dummy_block(self_id, MALICIOUS_MODE)
+            inv = create_inv(self_id, [block["block_id"]])
+            gossip_message(self_id, inv)
+            time.sleep(interval)
     threading.Thread(target=mine, daemon=True).start()
 
 def create_dummy_block(peer_id, MALICIOUS_MODE):
@@ -39,17 +38,29 @@ def create_dummy_block(peer_id, MALICIOUS_MODE):
     # `previous block` is the last block in the blockchain, to which the new block will be linked. 
     # If the block generator is malicious, it can generate random block ID.
 
-    # TODO: Read the transactions in the local `tx_pool` using the function `get_recent_transactions` in `transaction.py`.
-
-    # TODO: Create a new block with the transactions and generate the block ID using the function `compute_block_hash`.
-     
-    # TODO: Clear the local transaction pool and add the new block into the local blockchain (`receive_block`).
-    pass
+    txs = get_recent_transactions()
+    prev_id = received_blocks[-1]["block_id"] if received_blocks else None
+    block = {
+        "type": "BLOCK",
+        "peer": peer_id,
+        "timestamp": time.time(),
+        "prev_id": prev_id,
+        "transactions": txs,
+    }
+    if MALICIOUS_MODE:
+        block_id = generate_message_id()
+    else:
+        block_id = compute_block_hash(block)
+    block["block_id"] = block_id
+    clear_pool()
+    received_blocks.append(block)
+    header_store.append({"block_id": block_id, "prev_id": prev_id, "timestamp": block["timestamp"]})
     return block
 
 def compute_block_hash(block):
-    # TODO: Compute the hash of a block except for the term `block ID`.
-    pass
+    temp = dict(block)
+    temp.pop("block_id", None)
+    return hashlib.sha256(json.dumps(temp, sort_keys=True).encode()).hexdigest()
 
 def handle_block(msg, self_id):
     # TODO: Check the correctness of `block ID` in the received block. If incorrect, drop the block and record the sender's offence.
@@ -59,17 +70,33 @@ def handle_block(msg, self_id):
     # TODO: Check if the previous block of the block exists in the local blockchain. If not, add the block to the list of orphaned blocks (`orphan_blocks`). If yes, add the block to the local blockchain.
 
     # TODO: Check if the block is the previous block of blocks in `orphan_blocks`. If yes, add the orphaned blocks to the local blockchain.
-    pass
+    block_id = msg.get("block_id")
+    if compute_block_hash(msg) != block_id:
+        record_offense(msg.get("peer"))
+        return
+    if any(b["block_id"] == block_id for b in received_blocks):
+        return
+    prev = msg.get("prev_id")
+    if prev and not any(b["block_id"] == prev for b in received_blocks):
+        orphan_blocks[block_id] = msg
+        return
+    received_blocks.append(msg)
+    header_store.append({"block_id": block_id, "prev_id": prev, "timestamp": msg["timestamp"]})
+    # Attach any orphans
+    orphans_to_attach = [oid for oid, ob in orphan_blocks.items() if ob.get("prev_id") == block_id]
+    for oid in orphans_to_attach:
+        received_blocks.append(orphan_blocks.pop(oid))
 
 
 def create_getblock(sender_id, requested_ids):
-    # TODO: Define the JSON format of a `GETBLOCK` message, which should include `{message type, sender's ID, requesting block IDs}`.
-    pass
+    return {"type": "GETBLOCK", "sender": sender_id, "blocks": requested_ids}
 
 
 def get_block_by_id(block_id):
-    # TODO: Return the block in the local blockchain based on the block ID.
-    pass
+    for blk in received_blocks:
+        if blk.get("block_id") == block_id:
+            return blk
+    return None
 
 
 

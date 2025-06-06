@@ -13,36 +13,43 @@ rtt_tracker = {} # {peer_id: transmission latency}
 def start_ping_loop(self_id, peer_table):
     from outbox import enqueue_message
     def loop():
-       # TODO: Define the JSON format of a `ping` message, which should include `{message typy, sender's ID, timestamp}`.
-
-       # TODO: Send a `ping` message to each known peer periodically.
-       pass
+       while True:
+           msg = {"type": "PING", "sender": self_id, "timestamp": time.time()}
+           for pid, (ip, port) in peer_table.items():
+               if pid == self_id:
+                   continue
+               enqueue_message(pid, ip, port, msg)
+           time.sleep(5)
     threading.Thread(target=loop, daemon=True).start()
 
 def create_pong(sender, recv_ts):
-    # TODO: Create the JSON format of a `pong` message, which should include `{message type, sender's ID, timestamp in the received ping message}`.
-    pass
+    return {"type": "PONG", "sender": sender, "timestamp": recv_ts}
 
 def handle_pong(msg):
-    # TODO: Read the information in the received `pong` message.
-
-    # TODO: Update the transmission latenty between the peer and the sender (`rtt_tracker`).
-    pass
+    sender = msg.get("sender")
+    ts = msg.get("timestamp")
+    if sender is None or ts is None:
+        return
+    rtt = time.time() - ts
+    rtt_tracker[sender] = rtt
+    update_peer_heartbeat(sender)
 
 
 def start_peer_monitor():
     import threading
     def loop():
-        # TODO: Check the latest time to receive `ping` or `pong` message from each peer in `last_ping_time`.
-
-        # TODO: If the latest time is earlier than the limit, mark the peer's status in `peer_status` as `UNREACHABLE` or otherwise `ALIVE`.
-
-        pass
+        while True:
+            now = time.time()
+            for pid, ts in list(last_ping_time.items()):
+                if now - ts > 15:
+                    peer_status[pid] = 'UNREACHABLE'
+                else:
+                    peer_status[pid] = 'ALIVE'
+            time.sleep(5)
     threading.Thread(target=loop, daemon=True).start()
 
 def update_peer_heartbeat(peer_id):
-    # TODO: Update the `last_ping_time` of a peer when receiving its `ping` or `pong` message.
-    pass
+    last_ping_time[peer_id] = time.time()
 
 
 # === Blacklist Logic ===
@@ -52,9 +59,8 @@ blacklist = set() # The set of banned peers
 peer_offense_counts = {} # The offence times of peers
 
 def record_offense(peer_id):
-    # TODO: Record the offence times of a peer when malicious behaviors are detected.
-
-    # TODO: Add a peer to `blacklist` if its offence times exceed 3. 
-
-    pass
+    count = peer_offense_counts.get(peer_id, 0) + 1
+    peer_offense_counts[peer_id] = count
+    if count > 3:
+        blacklist.add(peer_id)
 
