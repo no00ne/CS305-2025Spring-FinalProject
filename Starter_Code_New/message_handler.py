@@ -9,7 +9,7 @@ from block_handler import handle_block, get_block_by_id, create_getblock, receiv
 from inv_message import  create_inv, get_inventory
 from block_handler import create_getblock
 from peer_manager import  update_peer_heartbeat, record_offense, create_pong, handle_pong
-from transaction import add_transaction
+from transaction import add_transaction, verify_transaction
 from outbox import enqueue_message, gossip_message
 
 
@@ -73,14 +73,26 @@ def dispatch_message(msg, self_id, self_ip):
         handle_hello_message(msg, self_id)
 
     elif msg_type == "BLOCK":
+
+        block_id = msg.get("block_id")
+        if any(b["block_id"] == block_id for b in received_blocks):
+            global redundant_blocks
+            redundant_blocks += 1
+            return
         handle_block(msg, self_id)
-        inv = create_inv(self_id, [msg.get("block_id")])
-        gossip_message(self_id, inv)
+        inv = create_inv(self_id, [block_id])
+
 
 
     elif msg_type == "TX":
-        add_transaction(msg)
-        gossip_message(self_id, msg)
+        if not verify_transaction(msg):
+            record_offense(sender)
+            return
+        if msg.get("id") in seen_txs:
+            global redundant_txs
+            redundant_txs += 1
+            return
+        seen_txs.add(msg.get("id"))
 
     elif msg_type == "PING":
         update_peer_heartbeat(sender)
@@ -132,3 +144,12 @@ def dispatch_message(msg, self_id, self_ip):
 
     else:
         print(f"[{self_id}] Unknown message type: {msg_type}", flush=True)
+
+
+
+def cleanup_seen_messages():
+    now = time.time()
+    expired = [msg_id for msg_id, ts in list(seen_message_ids.items()) if now - ts > SEEN_EXPIRY_SECONDS]
+    for msg_id in expired:
+        del seen_message_ids[msg_id]
+

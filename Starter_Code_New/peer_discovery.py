@@ -45,6 +45,5 @@ def handle_hello_message(msg, self_id):
 
     return new_peers
 
-    return new_peers 
 
 
